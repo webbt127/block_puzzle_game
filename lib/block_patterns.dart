@@ -2,126 +2,132 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 
 class BlockPattern {
-  final List<List<bool>> shape;
-  final Color color;
+  List<List<bool>> shape;
+  int width;
+  int height;
 
-  BlockPattern({
-    required this.shape,
-    required this.color,
-  });
+  BlockPattern({required this.shape})
+      : width = shape[0].length,
+        height = shape.length;
 
-  int get width => shape[0].length;
-  int get height => shape.length;
+  // Create a copy of the pattern
+  BlockPattern copy() {
+    return BlockPattern(
+      shape: shape.map((row) => List<bool>.from(row)).toList(),
+    );
+  }
+
+  // Rotate the pattern 90 degrees clockwise
+  BlockPattern rotateClockwise() {
+    List<List<bool>> rotated = List.generate(
+      width,
+      (i) => List.generate(height, (j) => shape[height - 1 - j][i]),
+    );
+    return BlockPattern(shape: rotated);
+  }
+
+  // Get all unique orientations of this pattern
+  List<BlockPattern> getAllOrientations() {
+    Set<String> uniquePatterns = {};
+    List<BlockPattern> orientations = [];
+    BlockPattern current = this;
+
+    // Try all 4 rotations
+    for (int i = 0; i < 4; i++) {
+      String patternString = current.shape.map((row) => row.join()).join();
+      if (!uniquePatterns.contains(patternString)) {
+        uniquePatterns.add(patternString);
+        orientations.add(current.copy());
+      }
+      current = current.rotateClockwise();
+    }
+
+    return orientations;
+  }
 }
 
-class BlockPatternGenerator {
-  static final Random _random = Random();
-  
-  // Base patterns without rotation
-  static final List<List<List<bool>>> _basePatterns = [
-    // 2x2 square
-    [
+class BlockPatterns {
+  static final List<BlockPattern> allPatterns = [
+    // Square (1 orientation)
+    BlockPattern(shape: [
       [true, true],
       [true, true],
-    ],
-    // L shape
-    [
-      [true, false],
-      [true, false],
-      [true, true],
-    ],
-    // T shape
-    [
+    ]),
+
+    // Line horizontal (2 orientations)
+    BlockPattern(shape: [
+      [true, true, true, true],
+    ]),
+    BlockPattern(shape: [
+      [true],
+      [true],
+      [true],
+      [true],
+    ]),
+
+    // T shape (4 orientations)
+    BlockPattern(shape: [
       [true, true, true],
       [false, true, false],
-    ],
-    // Z shape
-    [
+    ]),
+    BlockPattern(shape: [
+      [true, false],
+      [true, true],
+      [true, false],
+    ]),
+    BlockPattern(shape: [
+      [false, true, false],
+      [true, true, true],
+    ]),
+    BlockPattern(shape: [
+      [false, true],
+      [true, true],
+      [false, true],
+    ]),
+
+    // L shape (4 orientations)
+    BlockPattern(shape: [
+      [true, false],
+      [true, false],
+      [true, true],
+    ]),
+    BlockPattern(shape: [
+      [true, true, true],
+      [true, false, false],
+    ]),
+    BlockPattern(shape: [
+      [true, true],
+      [false, true],
+      [false, true],
+    ]),
+    BlockPattern(shape: [
+      [false, false, true],
+      [true, true, true],
+    ]),
+
+    // Z shape (2 orientations)
+    BlockPattern(shape: [
       [true, true, false],
       [false, true, true],
-    ],
-    // Line shape
-    [
-      [true],
-      [true],
-      [true],
-      [true],
-    ],
+    ]),
+    BlockPattern(shape: [
+      [false, true],
+      [true, true],
+      [true, false],
+    ]),
   ];
 
-  static final List<Color> _colors = [
-    Colors.red,
-    Colors.blue,
-    Colors.green,
-    Colors.yellow,
-    Colors.purple,
-    Colors.orange,
-  ];
-
-  // Rotate a pattern matrix 90 degrees clockwise
-  static List<List<bool>> _rotatePattern(List<List<bool>> pattern) {
-    final int rows = pattern.length;
-    final int cols = pattern[0].length;
+  static List<BlockPattern> getRandomPatterns(int count) {
+    final random = Random();
+    final patterns = <BlockPattern>[];
+    final availablePatterns = List<BlockPattern>.from(allPatterns);
     
-    // Create a new matrix with swapped dimensions
-    List<List<bool>> rotated = List.generate(
-      cols,
-      (i) => List.generate(rows, (j) => false),
-    );
-    
-    // Fill the rotated matrix
-    for (int i = 0; i < rows; i++) {
-      for (int j = 0; j < cols; j++) {
-        rotated[j][rows - 1 - i] = pattern[i][j];
-      }
+    while (patterns.length < count && availablePatterns.isNotEmpty) {
+      final index = random.nextInt(availablePatterns.length);
+      patterns.add(availablePatterns[index]);
+      availablePatterns.removeAt(index);
     }
     
-    return rotated;
-  }
-
-  // Get a random pattern with random rotation
-  static BlockPattern getRandomPattern() {
-    final basePattern = _basePatterns[_random.nextInt(_basePatterns.length)];
-    final color = _colors[_random.nextInt(_colors.length)];
-    
-    // Randomly rotate the pattern 0-3 times
-    var rotatedPattern = List<List<bool>>.from(basePattern);
-    final rotations = _random.nextInt(4); // 0-3 rotations
-    
-    for (int i = 0; i < rotations; i++) {
-      rotatedPattern = _rotatePattern(rotatedPattern);
-    }
-    
-    return BlockPattern(
-      shape: rotatedPattern,
-      color: color,
-    );
-  }
-
-  static List<BlockPattern> generateRandomPatterns(int count) {
-    final List<BlockPattern> patterns = [];
-    final List<Color> colors = [
-      Colors.red,
-      Colors.blue,
-      Colors.green,
-      Colors.yellow,
-      Colors.purple,
-      Colors.orange,
-    ];
-
-    for (int i = 0; i < count; i++) {
-      // Randomly select a base pattern
-      final List<List<bool>> selectedShape = _basePatterns[_random.nextInt(_basePatterns.length)];
-      
-      // Randomly select a color
-      final Color selectedColor = colors[_random.nextInt(colors.length)];
-
-      patterns.add(BlockPattern(
-        shape: selectedShape,
-        color: selectedColor,
-      ));
-    }
-
     return patterns;
   }
 }
@@ -187,7 +193,7 @@ class BlockPatternWidget extends StatelessWidget {
         painter: BlockPatternPainter(
           pattern: pattern,
           cellSize: cellSize,
-          color: pattern.color.withOpacity(opacity),
+          color: Colors.blue.withOpacity(opacity),
         ),
       ),
     );

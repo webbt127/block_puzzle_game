@@ -1,5 +1,11 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:video_player/video_player.dart';
 import 'block_patterns.dart';
+import 'dart:math';
+import 'dart:ui' as ui;
 
 class GridPosition {
   final int row;
@@ -17,13 +23,29 @@ class GridSystem {
   final double cellSize;
   final EdgeInsets padding;
   final GlobalKey gridKey = GlobalKey();
+  static VideoPlayerController? videoController;
 
   GridSystem({
     required this.rows,
     required this.cols,
     required this.cellSize,
     this.padding = const EdgeInsets.all(16.0),
-  });
+  }) {
+    _initializeVideo();
+  }
+
+  void _initializeVideo() async {
+    videoController ??= VideoPlayerController.asset('assets/flag_wave.mp4')
+        ..setLooping(true)
+        ..initialize().then((_) {
+          videoController?.play();
+        });
+  }
+
+  static void dispose() {
+    videoController?.dispose();
+    videoController = null;
+  }
 
   // Helper method to get grid box
   RenderBox? _getGridRenderBox() {
@@ -136,6 +158,17 @@ class GridSystem {
       position.row * cellSize,
     );
   }
+
+  // Place a pattern on the game board
+  void placeBlockPattern(BlockPattern pattern, GridPosition position, List<List<bool>> gameBoard) {
+    for (int i = 0; i < pattern.height; i++) {
+      for (int j = 0; j < pattern.width; j++) {
+        if (pattern.shape[i][j]) {
+          gameBoard[position.row + i][position.col + j] = true;
+        }
+      }
+    }
+  }
 }
 
 class GridOverlay extends StatelessWidget {
@@ -163,15 +196,58 @@ class GridOverlay extends StatelessWidget {
       decoration: BoxDecoration(
         border: Border.all(color: gridLineColor),
       ),
-      child: CustomPaint(
-        painter: GridPainter(
-          grid: grid,
-          gameBoard: gameBoard,
-          filledColor: filledColor,
-          gridLineColor: gridLineColor,
-          highlightedPosition: highlightedPosition,
-          highlightedPattern: highlightedPattern,
-        ),
+      child: GridWidget(
+        grid: grid,
+        gameBoard: gameBoard,
+        gridLineColor: gridLineColor,
+        highlightedPosition: highlightedPosition,
+        highlightedPattern: highlightedPattern,
+      ),
+    );
+  }
+}
+
+class GridWidget extends StatefulWidget {
+  final GridSystem grid;
+  final List<List<bool>> gameBoard;
+  final Color gridLineColor;
+  final GridPosition? highlightedPosition;
+  final BlockPattern? highlightedPattern;
+
+  const GridWidget({
+    Key? key,
+    required this.grid,
+    required this.gameBoard,
+    required this.gridLineColor,
+    this.highlightedPosition,
+    this.highlightedPattern,
+  }) : super(key: key);
+
+  @override
+  State<GridWidget> createState() => _GridWidgetState();
+}
+
+class _GridWidgetState extends State<GridWidget> {
+  Key _painterKey = UniqueKey();
+
+  void _handleImageLoad() {
+    setState(() {
+      // Force rebuild of CustomPaint by changing its key
+      _painterKey = UniqueKey();
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      key: _painterKey,
+      painter: GridPainter(
+        grid: widget.grid,
+        gameBoard: widget.gameBoard,
+        gridLineColor: widget.gridLineColor,
+        highlightedPosition: widget.highlightedPosition,
+        highlightedPattern: widget.highlightedPattern,
+        onImageLoad: _handleImageLoad,
       ),
     );
   }
@@ -180,40 +256,36 @@ class GridOverlay extends StatelessWidget {
 class GridPainter extends CustomPainter {
   final GridSystem grid;
   final List<List<bool>> gameBoard;
-  final Color filledColor;
   final Color gridLineColor;
   final GridPosition? highlightedPosition;
   final BlockPattern? highlightedPattern;
+  final Function onImageLoad;
 
   GridPainter({
     required this.grid,
     required this.gameBoard,
-    required this.filledColor,
     required this.gridLineColor,
     this.highlightedPosition,
     this.highlightedPattern,
+    required this.onImageLoad,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = gridLineColor
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.0;
+    final gridWidth = grid.cellSize * grid.cols;
+    final gridHeight = grid.cellSize * grid.rows;
 
-    final fillPaint = Paint()
-      ..color = filledColor
+    // Draw white squares over empty cells
+    final whitePaint = Paint()
+      ..color = Colors.white
       ..style = PaintingStyle.fill;
 
-    final highlightPaint = Paint()
-      ..color = Colors.green.withOpacity(0.3)
-      ..style = PaintingStyle.fill;
+    // Draw grid lines
+    final gridPaint = Paint()
+      ..color = gridLineColor.withOpacity(0.8)
+      ..strokeWidth = 1.0
+      ..style = PaintingStyle.stroke;
 
-    final invalidPaint = Paint()
-      ..color = Colors.red.withOpacity(0.3)
-      ..style = PaintingStyle.fill;
-
-    // Draw cells
     for (int row = 0; row < grid.rows; row++) {
       for (int col = 0; col < grid.cols; col++) {
         final rect = Rect.fromLTWH(
@@ -223,39 +295,35 @@ class GridPainter extends CustomPainter {
           grid.cellSize,
         );
 
-        // Draw filled cells
-        if (gameBoard[row][col]) {
-          canvas.drawRect(rect, fillPaint);
+        // If cell is empty, cover it with white
+        if (!gameBoard[row][col]) {
+          canvas.drawRect(rect, whitePaint);
         }
-
-        // Draw grid lines
-        canvas.drawRect(rect, paint);
+        
+        // Draw grid lines for all cells
+        canvas.drawRect(rect, gridPaint);
       }
     }
 
-    // Draw highlighted position if available
+    // Draw preview if available
     if (highlightedPosition != null && highlightedPattern != null) {
-      final isValid = grid.canPlacePattern(
-        highlightedPattern!,
-        highlightedPosition!,
-        gameBoard,
-      );
+      final pattern = highlightedPattern!;
+      final position = highlightedPosition!;
+      
+      final previewPaint = Paint()
+        ..color = Colors.blue.withOpacity(0.3)
+        ..style = PaintingStyle.fill;
 
-      for (int i = 0; i < highlightedPattern!.height; i++) {
-        for (int j = 0; j < highlightedPattern!.width; j++) {
-          if (highlightedPattern!.shape[i][j]) {
-            final row = highlightedPosition!.row + i;
-            final col = highlightedPosition!.col + j;
-            
-            if (row >= 0 && row < grid.rows && col >= 0 && col < grid.cols) {
-              final rect = Rect.fromLTWH(
-                col * grid.cellSize,
-                row * grid.cellSize,
-                grid.cellSize,
-                grid.cellSize,
-              );
-              canvas.drawRect(rect, isValid ? highlightPaint : invalidPaint);
-            }
+      for (int row = 0; row < pattern.shape.length; row++) {
+        for (int col = 0; col < pattern.shape[row].length; col++) {
+          if (pattern.shape[row][col]) {
+            final previewRect = Rect.fromLTWH(
+              (position.col + col) * grid.cellSize,
+              (position.row + row) * grid.cellSize,
+              grid.cellSize,
+              grid.cellSize,
+            );
+            canvas.drawRect(previewRect, previewPaint);
           }
         }
       }
@@ -263,7 +331,5 @@ class GridPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(GridPainter oldDelegate) {
-    return true;
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
