@@ -302,20 +302,32 @@ class GridPainter extends CustomPainter {
       final pattern = highlightedPattern!;
       final position = highlightedPosition!;
       
+      // Check if placement is valid
+      final isValid = grid.canPlacePattern(pattern, position, gameBoard);
+      
+      // Use green for valid placement, red for invalid
       final previewPaint = Paint()
-        ..color = Colors.blue.withOpacity(0.3)
+        ..color = (isValid ? Colors.green : Colors.red).withOpacity(0.3)
         ..style = PaintingStyle.fill;
 
+      // Draw preview squares
       for (int row = 0; row < pattern.shape.length; row++) {
         for (int col = 0; col < pattern.shape[row].length; col++) {
           if (pattern.shape[row][col]) {
-            final previewRect = Rect.fromLTWH(
-              (position.col + col) * grid.cellSize,
-              (position.row + row) * grid.cellSize,
-              grid.cellSize,
-              grid.cellSize,
-            );
-            canvas.drawRect(previewRect, previewPaint);
+            final gridRow = position.row + row;
+            final gridCol = position.col + col;
+            
+            // Only draw if within grid bounds
+            if (gridRow >= 0 && gridRow < grid.rows && 
+                gridCol >= 0 && gridCol < grid.cols) {
+              final previewRect = Rect.fromLTWH(
+                gridCol * grid.cellSize,
+                gridRow * grid.cellSize,
+                grid.cellSize,
+                grid.cellSize,
+              );
+              canvas.drawRect(previewRect, previewPaint);
+            }
           }
         }
       }

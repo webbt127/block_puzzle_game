@@ -83,7 +83,6 @@ class AboutScreen extends ConsumerWidget {
               'Assets:',
               style: Theme.of(context).textTheme.titleMedium,
             ),
-            const Text('• Flag Wave Video - [Vecteezy.com]'),
             const Text('• GIFs - [https://gifer.com/]'),
             //const Text('• Sound Effects - [Source]'),
             const SizedBox(height: 16),
