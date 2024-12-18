@@ -1,4 +1,5 @@
 import 'package:block_puzzle_game/providers/feedback_providers.dart';
+import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:purchases_flutter/purchases_flutter.dart';
@@ -107,17 +108,18 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
 
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
+        backgroundColor: Colors.red,
+        foregroundColor: Colors.white,
         title: Text(
-          'Premium Features',
-          style: TextStyle(
-            color: Theme.of(context).appBarTheme.foregroundColor,
+          'premium_features'.tr(),
+          style: const TextStyle(
+            color: Colors.white,
           ),
         ),
         leading: IconButton(
-          icon: Icon(
+          icon: const Icon(
             Icons.arrow_back,
-            color: Theme.of(context).appBarTheme.foregroundColor,
+            color: Colors.white,
           ),
           onPressed: () {
             feedbackManager.playFeedback();
@@ -126,9 +128,9 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
         ),
         actions: [
           IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.restore,
-              color: Theme.of(context).appBarTheme.foregroundColor,
+              color: Colors.white,
             ),
             onPressed: () async {
               feedbackManager.playFeedback();
@@ -153,10 +155,10 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
         ],
         bottom: TabBar(
           controller: _tabController,
-          labelColor: Theme.of(context).appBarTheme.foregroundColor,
-          tabs: const [
-            Tab(text: 'Available'),
-            Tab(text: 'Purchased'),
+          labelColor: Colors.white,
+          tabs: [
+            Tab(text: 'available'.tr()),
+            Tab(text: 'purchased'.tr()),
           ],
         ),
       ),

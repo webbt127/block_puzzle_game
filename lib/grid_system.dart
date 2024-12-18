@@ -178,6 +178,7 @@ class GridOverlay extends StatelessWidget {
   final Color gridLineColor;
   final GridPosition? highlightedPosition;
   final BlockPattern? highlightedPattern;
+  final bool isDarkMode;
 
   const GridOverlay({
     super.key,
@@ -187,6 +188,7 @@ class GridOverlay extends StatelessWidget {
     this.gridLineColor = const Color(0xFFE0E0E0),
     this.highlightedPosition,
     this.highlightedPattern,
+    this.isDarkMode = false,
   });
 
   @override
@@ -202,6 +204,7 @@ class GridOverlay extends StatelessWidget {
         gridLineColor: gridLineColor,
         highlightedPosition: highlightedPosition,
         highlightedPattern: highlightedPattern,
+        isDarkMode: isDarkMode,
       ),
     );
   }
@@ -213,6 +216,7 @@ class GridWidget extends StatefulWidget {
   final Color gridLineColor;
   final GridPosition? highlightedPosition;
   final BlockPattern? highlightedPattern;
+  final bool isDarkMode;
 
   const GridWidget({
     Key? key,
@@ -221,6 +225,7 @@ class GridWidget extends StatefulWidget {
     required this.gridLineColor,
     this.highlightedPosition,
     this.highlightedPattern,
+    required this.isDarkMode,
   }) : super(key: key);
 
   @override
@@ -248,6 +253,7 @@ class _GridWidgetState extends State<GridWidget> {
         highlightedPosition: widget.highlightedPosition,
         highlightedPattern: widget.highlightedPattern,
         onImageLoad: _handleImageLoad,
+        isDarkMode: widget.isDarkMode,
       ),
     );
   }
@@ -260,6 +266,7 @@ class GridPainter extends CustomPainter {
   final GridPosition? highlightedPosition;
   final BlockPattern? highlightedPattern;
   final Function onImageLoad;
+  final bool isDarkMode;
 
   GridPainter({
     required this.grid,
@@ -268,6 +275,7 @@ class GridPainter extends CustomPainter {
     this.highlightedPosition,
     this.highlightedPattern,
     required this.onImageLoad,
+    required this.isDarkMode,
   });
 
   @override
@@ -275,14 +283,14 @@ class GridPainter extends CustomPainter {
     final gridWidth = grid.cellSize * grid.cols;
     final gridHeight = grid.cellSize * grid.rows;
 
-    // Draw white squares over empty cells
-    final whitePaint = Paint()
-      ..color = Colors.white
+    // Draw background squares over empty cells
+    final emptyPaint = Paint()
+      ..color = isDarkMode ? Colors.grey[900]! : Colors.white
       ..style = PaintingStyle.fill;
 
     // Draw grid lines
     final gridPaint = Paint()
-      ..color = gridLineColor.withOpacity(0.8)
+      ..color = gridLineColor.withOpacity(isDarkMode ? 0.4 : 0.8)
       ..strokeWidth = 1.0
       ..style = PaintingStyle.stroke;
 
@@ -295,9 +303,9 @@ class GridPainter extends CustomPainter {
           grid.cellSize,
         );
 
-        // If cell is empty, cover it with white
+        // If cell is empty, cover it with background color
         if (!gameBoard[row][col]) {
-          canvas.drawRect(rect, whitePaint);
+          canvas.drawRect(rect, emptyPaint);
         }
         
         // Draw grid lines for all cells

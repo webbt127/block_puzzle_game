@@ -1,9 +1,10 @@
 import 'dart:io';
 import 'package:block_puzzle_game/screens/main_menu_screen.dart';
+import 'package:block_puzzle_game/services/ad_service.dart';
 import 'package:flutter/material.dart';
 import 'screens/game_screen.dart';
 import 'package:block_puzzle_game/env/env.dart';
-import 'package:block_puzzle_game/providers/settings_notifier.dart';
+import 'package:block_puzzle_game/providers/settings_notifier.dart' as settings;
 import 'package:block_puzzle_game/services/revenue_cat_service.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -11,6 +12,8 @@ import 'package:block_puzzle_game/screens/main_menu_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:block_puzzle_game/constants/supported_locales.dart';
 import 'package:block_puzzle_game/models/theme.dart';
+import 'package:block_puzzle_game/screens/settings_screen.dart';
+import 'package:block_puzzle_game/screens/about_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,11 +21,13 @@ void main() async {
 
   final container = ProviderContainer();
   final settingsProvider =
-      await container.read(settingsNotifierProvider.future);
+      await container.read(settings.settingsNotifierProvider.future);
 
   await container.read(revenueCatServiceProvider).init(Platform.isAndroid
       ? Env.revenueCatApiKeyAndroid
       : Env.revenueCatApiKeyIos);
+
+  await AdService.initialize();
 
   runApp(
     ProviderScope(
@@ -42,19 +47,21 @@ class MyApp extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final settings = ref.watch(settingsNotifierProvider);
+    final settingsValue = ref.watch(settings.settingsNotifierProvider);
 
     return MaterialApp(
       localizationsDelegates: context.localizationDelegates,
       supportedLocales: context.supportedLocales,
       locale: context.locale,
-      title: 'app_name'.tr(),
-      theme: ThemeModel.getTheme(
-          settings.value?.themeType ?? ThemeType.blue, ThemeMode.light),
-      darkTheme: ThemeModel.getTheme(
-          settings.value?.themeType ?? ThemeType.blue, ThemeMode.dark),
-      themeMode: settings.value?.themeMode ?? ThemeMode.system,
+      title: 'Block Blast - Stars & Stripes',
+      theme: ThemeModel.getTheme(ThemeType.blue, ThemeMode.light),
+      darkTheme: ThemeModel.getTheme(ThemeType.blue, ThemeMode.dark),
+      themeMode: settingsValue.value?.themeMode ?? ThemeMode.system,
       home: const MainMenuScreen(),
+      routes: {
+        '/settings': (context) => const SettingsScreen(),
+        '/about': (context) => const AboutScreen(),
+      },
     );
   }
 }

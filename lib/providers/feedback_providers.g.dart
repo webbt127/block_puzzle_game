@@ -90,5 +90,43 @@ final settingsFeedbackProvider = AutoDisposeProvider<FeedbackManager>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef SettingsFeedbackRef = AutoDisposeProviderRef<FeedbackManager>;
+String _$blockInteractionFeedbackHash() =>
+    r'e907e842b98e67a81cf8419c4c4f4d4907a98052';
+
+/// See also [blockInteractionFeedback].
+@ProviderFor(blockInteractionFeedback)
+final blockInteractionFeedbackProvider =
+    AutoDisposeProvider<FeedbackManager>.internal(
+  blockInteractionFeedback,
+  name: r'blockInteractionFeedbackProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$blockInteractionFeedbackHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef BlockInteractionFeedbackRef = AutoDisposeProviderRef<FeedbackManager>;
+String _$blockPlacedFeedbackHash() =>
+    r'9009842c1fd496330f60ac0ea95d2bf97aa18ffd';
+
+/// See also [blockPlacedFeedback].
+@ProviderFor(blockPlacedFeedback)
+final blockPlacedFeedbackProvider =
+    AutoDisposeProvider<FeedbackManager>.internal(
+  blockPlacedFeedback,
+  name: r'blockPlacedFeedbackProvider',
+  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+      ? null
+      : _$blockPlacedFeedbackHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef BlockPlacedFeedbackRef = AutoDisposeProviderRef<FeedbackManager>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

@@ -132,46 +132,6 @@ class BlockPatterns {
   }
 }
 
-class BlockPatternPainter extends CustomPainter {
-  final BlockPattern pattern;
-  final double cellSize;
-  final Color color;
-
-  BlockPatternPainter({
-    required this.pattern,
-    required this.cellSize,
-    required this.color,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..style = PaintingStyle.fill;
-
-    for (int row = 0; row < pattern.height; row++) {
-      for (int col = 0; col < pattern.width; col++) {
-        if (pattern.shape[row][col]) {
-          final rect = Rect.fromLTWH(
-            col * cellSize,
-            row * cellSize,
-            cellSize,
-            cellSize,
-          );
-          canvas.drawRect(rect, paint);
-        }
-      }
-    }
-  }
-
-  @override
-  bool shouldRepaint(BlockPatternPainter oldDelegate) {
-    return oldDelegate.pattern != pattern ||
-        oldDelegate.cellSize != cellSize ||
-        oldDelegate.color != color;
-  }
-}
-
 class BlockPatternWidget extends StatelessWidget {
   final BlockPattern pattern;
   final double cellSize;
@@ -186,15 +146,46 @@ class BlockPatternWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return buildWidget(context);
+  }
+
+  Widget buildWidget(BuildContext context, {bool isPreview = false}) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+    final cellSize = isPreview ? 24.0 : 40.0;
+    final padding = isPreview ? 2.0 : 4.0;
+
     return Container(
-      width: pattern.width * cellSize,
-      height: pattern.height * cellSize,
-      child: CustomPaint(
-        painter: BlockPatternPainter(
-          pattern: pattern,
-          cellSize: cellSize,
-          color: Colors.blue.withOpacity(opacity),
-        ),
+      decoration: BoxDecoration(
+        color: isDarkMode ? Colors.grey[900] : Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(isDarkMode ? 0.3 : 0.1),
+            blurRadius: 4,
+            spreadRadius: 0,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: pattern.shape.asMap().entries.map((rowEntry) {
+          return Row(
+            mainAxisSize: MainAxisSize.min,
+            children: rowEntry.value.asMap().entries.map((colEntry) {
+              return Container(
+                width: cellSize,
+                height: cellSize,
+                margin: EdgeInsets.all(padding),
+                decoration: BoxDecoration(
+                  color: colEntry.value
+                      ? (isDarkMode ? Colors.blue[700] : Colors.blue)
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(4),
+                ),
+              );
+            }).toList(),
+          );
+        }).toList(),
       ),
     );
   }

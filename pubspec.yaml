@@ -52,6 +52,7 @@ dev_dependencies:
   build_runner: ^2.4.7
   riverpod_generator: ^2.3.9
   envied_generator: ^1.0.0
+  flutter_launcher_icons: ^0.13.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec
@@ -69,6 +70,10 @@ flutter:
     - assets/images/donald.png
     - assets/images/flag.jpg
     - assets/flag_wave.mp4
+    - assets/translations/en.json
+    - assets/bald_eagle_drinking.gif
+    - assets/trump_nobg.gif
+    - assets/biden_nobg.gif
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
@@ -96,3 +101,7 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
+  fonts:
+    - family: AlfaSlabOne
+      fonts:
+        - asset: assets/fonts/AlfaSlabOne-Regular.ttf

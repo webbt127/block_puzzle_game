@@ -1,21 +1,30 @@
 import 'package:flutter/material.dart';
 import 'package:video_player/video_player.dart';
 import 'dart:math' as math;
+import 'dart:math';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:block_puzzle_game/providers/feedback_providers.dart';
 import '../grid_system.dart';
 import '../block_patterns.dart';
 import '../game_over_popup.dart';
+import '../widgets/patriotic_container.dart';
+import '../widgets/patriotic_block_pattern.dart';
+import '../pardon_popup.dart';
+import '../services/ad_service.dart';
+import '../services/games_services.dart';
 
-const int rows = 10;
-const int columns = 10;
+const int rows = 8;
+const int columns = 8;
 
-class GameScreen extends StatefulWidget {
+class GameScreen extends ConsumerStatefulWidget {
   const GameScreen({super.key});
 
   @override
-  State<GameScreen> createState() => _GameScreenState();
+  ConsumerState<GameScreen> createState() => _GameScreenState();
 }
 
-class _GameScreenState extends State<GameScreen> {
+class _GameScreenState extends ConsumerState<GameScreen> {
   late GridSystem gridSystem;
   List<BlockPattern> availablePatterns = [];
   List<List<bool>> gameBoard = List.generate(
@@ -23,8 +32,11 @@ class _GameScreenState extends State<GameScreen> {
     (i) => List.generate(columns, (j) => false),
   );
   int score = 0;
+  int consecutiveClears = 0;  // Track consecutive clears
   GridPosition? previewPosition;
   BlockPattern? previewPattern;
+  BannerAd? _bannerAd;
+  bool _isAdLoaded = false;
 
   @override
   void initState() {
@@ -35,10 +47,27 @@ class _GameScreenState extends State<GameScreen> {
       cellSize: 40,
     );
     _generateNewPatterns();
+    _loadBannerAd();
+    
+    // Load and show interstitial ad at game start
+    AdService.createInterstitialAd();
+    Future.delayed(const Duration(milliseconds: 500), () {
+      AdService.showInterstitialAd();
+    });
+  }
+
+  void _loadBannerAd() {
+    _bannerAd = AdService.createBannerAd();
+    _bannerAd?.load().then((_) {
+      setState(() {
+        _isAdLoaded = true;
+      });
+    });
   }
 
   @override
   void dispose() {
+    _bannerAd?.dispose();
     GridSystem.dispose();
     super.dispose();
   }
@@ -75,6 +104,9 @@ class _GameScreenState extends State<GameScreen> {
   }
 
   void _showGameOverPopup() {
+    // Submit score to Game Center
+    GameServicesService.submitScore(score);
+    
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -88,8 +120,12 @@ class _GameScreenState extends State<GameScreen> {
                 (i) => List.generate(columns, (j) => false),
               );
               score = 0;
+              consecutiveClears = 0;
               _generateNewPatterns();
             });
+            
+            // Show interstitial ad on replay
+            AdService.showInterstitialAd();
             Navigator.of(context).pop();
           },
         );
@@ -99,12 +135,13 @@ class _GameScreenState extends State<GameScreen> {
 
   void _checkAndClearLines() {
     bool needsUpdate = false;
+    int clearedLines = 0;
     
     // Check rows
     for (int row = 0; row < rows; row++) {
       if (gameBoard[row].every((cell) => cell)) {
         gameBoard[row] = List.generate(columns, (j) => false);
-        score += columns;
+        clearedLines++;
         needsUpdate = true;
       }
     }
@@ -115,71 +152,157 @@ class _GameScreenState extends State<GameScreen> {
         for (int row = 0; row < rows; row++) {
           gameBoard[row][col] = false;
         }
-        score += rows;
+        clearedLines++;
         needsUpdate = true;
       }
     }
     
     if (needsUpdate) {
+      // Calculate score with multipliers
+      int clearScore = 0;
+      
+      // Base score for cleared lines (100 points per line)
+      clearScore = clearedLines * 100;
+      
+      // Multiple lines cleared multiplier (2x for 2 lines, 3x for 3+ lines)
+      if (clearedLines >= 3) {
+        clearScore *= 3;
+      } else if (clearedLines == 2) {
+        clearScore *= 2;
+      }
+      
+      // Consecutive clear multiplier (1.5x for second clear, 2x for third and beyond)
+      if (consecutiveClears > 0) {
+        clearScore = (clearScore * (consecutiveClears >= 2 ? 2.0 : 1.5)).toInt();
+      }
+      
+      score += clearScore;
+      consecutiveClears++;
+      
       setState(() {});
+      
+      // Show pardon popup if 1 or more lines were cleared
+      if (clearedLines >= 2 || consecutiveClears >= 2) {
+        showDialog(
+          context: context,
+          barrierDismissible: false,
+          builder: (BuildContext context) {
+            return const PardonPopup();
+          },
+        );
+      }
+    } else {
+      // Reset consecutive clears if no lines were cleared
+      consecutiveClears = 0;
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(16.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  'Score: $score',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
+      body: SafeArea(
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(
+                          Icons.home,
+                          color: Colors.blue,
+                          size: 32,
+                        ),
+                        onPressed: () async {
+                          await ref.read(feedbackManagerProvider).playFeedback();
+                          if (!context.mounted) return;
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.settings,
+                          color: Colors.blue,
+                          size: 32,
+                        ),
+                        onPressed: () async {
+                          await ref.read(feedbackManagerProvider).playFeedback();
+                          if (!context.mounted) return;
+                          Navigator.of(context).pushNamed('/settings');
+                        },
+                      ),
+                    ],
                   ),
-                ),
-              ],
-            ),
-          ),
-          Expanded(
-            child: Center(
-              child: Container(
-                margin: const EdgeInsets.all(16.0),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.1),
-                      blurRadius: 10,
-                      spreadRadius: 2,
+                  Text(
+                    'Score: $score',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
                     ),
-                  ],
-                ),
-                child: LayoutBuilder(
-                  builder: (context, constraints) {
-                    // Update grid cell size based on available space
-                    final smallestDimension = math.min(constraints.maxWidth, constraints.maxHeight);
-                    final cellSize = (smallestDimension - 32) / rows;  // 32 for margin
-                    final gridSize = cellSize * rows;  // Total grid size
-                    
-                    // Calculate centering padding
-                    final horizontalPadding = (constraints.maxWidth - gridSize) / 2;
-                    final verticalPadding = (constraints.maxHeight - gridSize) / 2;
-                    
-                    gridSystem = GridSystem(
-                      rows: rows,
-                      cols: columns,
-                      cellSize: cellSize,
-                    );
-                    
-                    return Stack(
-                      children: [
-                        if (GridSystem.videoController?.value.isInitialized ?? false)
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Center(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                  decoration: BoxDecoration(
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.grey[850]
+                        : Colors.white,
+                    borderRadius: BorderRadius.circular(16.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(
+                            Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.1),
+                        blurRadius: 10,
+                        spreadRadius: 2,
+                      ),
+                    ],
+                  ),
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      // Update grid cell size based on available space
+                      final smallestDimension = math.min(constraints.maxWidth, constraints.maxHeight);
+                      final cellSize = (smallestDimension - 32) / rows;  // 32 for margin
+                      final gridSize = cellSize * rows;  // Total grid size
+                      
+                      // Calculate centering padding
+                      final horizontalPadding = (constraints.maxWidth - gridSize) / 2;
+                      final verticalPadding = (constraints.maxHeight - gridSize) / 2;
+                      
+                      gridSystem = GridSystem(
+                        rows: rows,
+                        cols: columns,
+                        cellSize: cellSize,
+                      );
+                      
+                      return Stack(
+                        children: [
+                          if (GridSystem.videoController?.value.isInitialized ?? false)
+                            Padding(
+                              padding: EdgeInsets.symmetric(
+                                horizontal: math.max(0, horizontalPadding),
+                                vertical: math.max(0, verticalPadding),
+                              ),
+                              child: AspectRatio(
+                                aspectRatio: 1.0,
+                                child: ClipRect(
+                                  child: FittedBox(
+                                    fit: BoxFit.cover,
+                                    child: SizedBox(
+                                      width: GridSystem.videoController!.value.size.width,
+                                      height: GridSystem.videoController!.value.size.height,
+                                      child: VideoPlayer(GridSystem.videoController!),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
                           Padding(
                             padding: EdgeInsets.symmetric(
                               horizontal: math.max(0, horizontalPadding),
@@ -187,176 +310,175 @@ class _GameScreenState extends State<GameScreen> {
                             ),
                             child: AspectRatio(
                               aspectRatio: 1.0,
-                              child: ClipRect(
-                                child: FittedBox(
-                                  fit: BoxFit.cover,
-                                  child: SizedBox(
-                                    width: GridSystem.videoController!.value.size.width,
-                                    height: GridSystem.videoController!.value.size.height,
-                                    child: VideoPlayer(GridSystem.videoController!),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                        Padding(
-                          padding: EdgeInsets.symmetric(
-                            horizontal: math.max(0, horizontalPadding),
-                            vertical: math.max(0, verticalPadding),
-                          ),
-                          child: AspectRatio(
-                            aspectRatio: 1.0,
-                            child: DragTarget<BlockPattern>(
-                              onWillAccept: (data) => true,
-                              onAcceptWithDetails: (details) {
-                                if (previewPosition != null && previewPattern != null) {
-                                  final isValid = gridSystem.canPlacePattern(
-                                    previewPattern!,
-                                    previewPosition!,
-                                    gameBoard,
-                                  );
-                                  if (isValid) {
-                                    // Calculate score before clearing the preview
-                                    final blockScore = previewPattern!.shape
-                                        .expand((row) => row)
-                                        .where((cell) => cell)
-                                        .length;
-                                    
+                              child: DragTarget<BlockPattern>(
+                                onWillAccept: (data) => true,
+                                onAcceptWithDetails: (details) async {
+                                  if (previewPosition != null && previewPattern != null) {
+                                    final isValid = gridSystem.canPlacePattern(
+                                      previewPattern!,
+                                      previewPosition!,
+                                      gameBoard,
+                                    );
+                                    if (isValid) {
+                                      await ref.read(feedbackManagerProvider).playFeedback();
+                                      
+                                      // Calculate score before clearing the preview
+                                      final blockScore = previewPattern!.shape
+                                          .expand((row) => row)
+                                          .where((cell) => cell)
+                                          .length * 10;  // 10 points per block cell
+                                      
+                                      setState(() {
+                                        gridSystem.placeBlockPattern(
+                                          previewPattern!,
+                                          previewPosition!,
+                                          gameBoard,
+                                        );
+                                        score += blockScore;  // Add block placement score
+                                        _checkAndClearLines();
+                                        
+                                        // Remove used pattern and check for game over
+                                        availablePatterns.remove(previewPattern);
+                                        if (availablePatterns.isEmpty) {
+                                          _generateNewPatterns();
+                                        }
+                                        
+                                        // Check for game over after pattern placement
+                                        if (_isGameOver()) {
+                                          _showGameOverPopup();
+                                        }
+                                      });
+                                    }
+                                    // Clear preview in all cases
                                     setState(() {
-                                      gridSystem.placeBlockPattern(
-                                        previewPattern!,
-                                        previewPosition!,
-                                        gameBoard,
-                                      );
-                                      _checkAndClearLines();
-                                      score += blockScore;
-                                      
-                                      // Remove used pattern and check for game over
-                                      availablePatterns.remove(previewPattern);
-                                      if (availablePatterns.isEmpty) {
-                                        _generateNewPatterns();
-                                      }
-                                      
-                                      // Check for game over after pattern placement
-                                      if (_isGameOver()) {
-                                        _showGameOverPopup();
-                                      }
+                                      previewPosition = null;
+                                      previewPattern = null;
                                     });
                                   }
-                                  // Clear preview in all cases
+                                },
+                                onLeave: (data) {
                                   setState(() {
                                     previewPosition = null;
                                     previewPattern = null;
                                   });
-                                }
-                              },
-                              onLeave: (data) {
-                                setState(() {
-                                  previewPosition = null;
-                                  previewPattern = null;
-                                });
-                              },
-                              onMove: (details) {
-                                final position = gridSystem.getCenteredPatternPosition(
-                                  details.data,
-                                  details.offset,
-                                  context,
-                                );
-                                setState(() {
-                                  previewPosition = position;
-                                  previewPattern = details.data;
-                                });
-                              },
-                              builder: (context, candidateData, rejectedData) {
-                                return CustomPaint(
-                                  key: gridSystem.gridKey,
-                                  painter: GridPainter(
+                                },
+                                onMove: (details) {
+                                  final position = gridSystem.getCenteredPatternPosition(
+                                    details.data,
+                                    details.offset,
+                                    context,
+                                  );
+                                  setState(() {
+                                    previewPosition = position;
+                                    previewPattern = details.data;
+                                  });
+                                },
+                                builder: (context, candidateData, rejectedData) {
+                                  return GridOverlay(
                                     grid: gridSystem,
                                     gameBoard: gameBoard,
-                                    gridLineColor: Colors.blue.withOpacity(0.2),
+                                    gridLineColor: Theme.of(context).brightness == Brightness.dark 
+                                      ? Colors.grey[700]! 
+                                      : const Color(0xFFE0E0E0),
                                     highlightedPosition: previewPosition,
                                     highlightedPattern: previewPattern,
-                                    onImageLoad: () {},
-                                  ),
-                                );
-                              },
+                                    isDarkMode: Theme.of(context).brightness == Brightness.dark,
+                                  );
+                                },
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    );
-                  },
-                ),
-              ),
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(vertical: 16.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  offset: const Offset(0, -2),
-                  blurRadius: 10,
-                ),
-              ],
-            ),
-            child: Column(
-              children: [
-                const Text(
-                  'Available Blocks',
-                  style: TextStyle(
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: gridSystem.cellSize * 3.5,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: availablePatterns.length,
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0),
-                    itemBuilder: (context, index) {
-                      return Draggable<BlockPattern>(
-                        data: availablePatterns[index],
-                        feedback: BlockPatternWidget(
-                          pattern: availablePatterns[index],
-                          cellSize: gridSystem.cellSize * 0.75,
-                        ),
-                        childWhenDragging: Opacity(
-                          opacity: 0.3,
-                          child: BlockPatternWidget(
-                            pattern: availablePatterns[index],
-                            cellSize: gridSystem.cellSize * 0.75,
-                          ),
-                        ),
-                        child: Container(
-                          margin: const EdgeInsets.symmetric(horizontal: 8.0),
-                          padding: const EdgeInsets.all(8.0),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.blue.withOpacity(0.2),
-                              width: 2,
-                            ),
-                          ),
-                          child: BlockPatternWidget(
-                            pattern: availablePatterns[index],
-                            cellSize: gridSystem.cellSize * 0.75,
-                          ),
-                        ),
+                        ],
                       );
                     },
                   ),
                 ),
-              ],
+              ),
             ),
-          ),
-        ],
+            Container(
+              margin: const EdgeInsets.all(16.0),
+              padding: const EdgeInsets.all(16.0),
+              constraints: const BoxConstraints(maxHeight: 120), 
+              decoration: BoxDecoration(
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? Colors.grey[850]
+                    : Colors.white,
+                borderRadius: BorderRadius.circular(16.0),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(
+                        Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.1),
+                    blurRadius: 10,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: LayoutBuilder(
+                builder: (context, constraints) {
+                  final itemWidth = (constraints.maxWidth - 32) / 3; 
+                  return Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: availablePatterns.map((pattern) {
+                      final smallCellSize = min(itemWidth / 5, gridSystem.cellSize * 0.4); // Smaller size for available blocks
+                      final dragCellSize = gridSystem.cellSize * 0.75; // Larger size when dragging
+                      return SizedBox(
+                        width: itemWidth,
+                        child: Draggable<BlockPattern>(
+                          data: pattern,
+                          onDragStarted: () {
+                            ref.read(feedbackManagerProvider).playFeedback();
+                          },
+                          feedback: Transform.scale(
+                            scale: 1.3, // Slightly larger when dragging
+                            child: PatrioticBlockPatternWidget(
+                              pattern: pattern,
+                              cellSize: dragCellSize,
+                            ),
+                          ),
+                          childWhenDragging: Opacity(
+                            opacity: 0.3,
+                            child: PatrioticBlockPatternWidget(
+                              pattern: pattern,
+                              cellSize: smallCellSize,
+                            ),
+                          ),
+                          child: Container(
+                            padding: const EdgeInsets.all(8.0),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.grey[900]
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.blue.withOpacity(0.3)
+                                    : Colors.blue.withOpacity(0.2),
+                                width: 2,
+                              ),
+                            ),
+                            child: Center(
+                              child: PatrioticBlockPatternWidget(
+                                pattern: pattern,
+                                cellSize: smallCellSize,
+                              ),
+                            ),
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                  );
+                },
+              ),
+            ),
+            if (_bannerAd != null && _isAdLoaded)
+              Container(
+                alignment: Alignment.bottomCenter,
+                width: _bannerAd!.size.width.toDouble(),
+                height: _bannerAd!.size.height.toDouble(),
+                child: AdWidget(ad: _bannerAd!),
+              ),
+          ],
+        ),
       ),
     );
   }

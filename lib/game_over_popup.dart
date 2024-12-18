@@ -70,46 +70,61 @@ class _GameOverPopupState extends State<GameOverPopup>
               scale: _scaleAnimation.value,
               child: Container(
                 width: 300,
-                height: 400,
+                padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
                 decoration: BoxDecoration(
                   color: Colors.white,
                   borderRadius: BorderRadius.circular(20),
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withOpacity(0.3),
-                      blurRadius: 15,
-                      spreadRadius: 5,
+                      color: Colors.black.withOpacity(0.2),
+                      blurRadius: 10,
+                      spreadRadius: 2,
                     ),
                   ],
                 ),
                 child: Column(
+                  mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Container(
-                      width: 200,
-                      height: 200,
-                      decoration: const BoxDecoration(
-                        image: DecorationImage(
-                          image: AssetImage('assets/images/donald.png'),
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    const Text(
-                      "YOU'RE FIRED!",
+                    Text(
+                      "YOU'RE FIRED",
+                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.red,
+                        fontFamily: 'AlfaSlabOne',
+                        fontSize: 32,
+                        color: Colors.red[700],
+                        shadows: [
+                          Shadow(
+                            color: Colors.blue[900]!,
+                            blurRadius: 4,
+                            offset: const Offset(2, 2),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 12),
+                    Container(
+                      width: 250,
+                      height: 250,
+                      child: Image.asset(
+                        'assets/trump_nobg.gif',
+                        fit: BoxFit.contain,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
                     Text(
                       'Final Score: ${widget.finalScore}',
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.w500,
+                      style: TextStyle(
+                        fontFamily: 'AlfaSlabOne',
+                        fontSize: 18,
+                        color: Colors.blue[900],
+                        shadows: [
+                          Shadow(
+                            color: Colors.red[700]!,
+                            blurRadius: 4,
+                            offset: const Offset(2, 2),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 20),

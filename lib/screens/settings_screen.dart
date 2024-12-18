@@ -1,11 +1,12 @@
 import 'package:block_puzzle_game/providers/feedback_providers.dart';
+import 'package:block_puzzle_game/providers/settings_notifier.dart' as settings;
 import 'package:block_puzzle_game/providers/settings_notifier.dart';
 import 'package:block_puzzle_game/screens/store_screen.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+//import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:block_puzzle_game/services/revenue_cat_service.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -16,35 +17,35 @@ class SettingsScreen extends ConsumerStatefulWidget {
 }
 
 class _SettingsScreenState extends ConsumerState<SettingsScreen> {
-  BannerAd? _bannerAd;
+  //BannerAd? _bannerAd;
 
   @override
   void dispose() {
-    _bannerAd?.dispose();
+    //_bannerAd?.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    final settings = ref.watch(settingsNotifierProvider);
+    final settingsData = ref.watch(settings.settingsNotifierProvider);
     final feedbackManager = ref.watch(settingsFeedbackProvider);
     final colorScheme = Theme.of(context).colorScheme;
 
-    return settings.when(
-      data: (settingsData) => Scaffold(
+    return settingsData.when(
+      data: (data) => Scaffold(
         appBar: AppBar(
-          backgroundColor: colorScheme.primary,
-          foregroundColor: colorScheme.onPrimary,
+          backgroundColor: Colors.red,
+          foregroundColor: Colors.white,
           title: Text(
             'settings'.tr(),
-            style: TextStyle(
-              color: colorScheme.onPrimary,
+            style: const TextStyle(
+              color: Colors.white,
             ),
           ),
           leading: IconButton(
-            icon: Icon(
+            icon: const Icon(
               Icons.arrow_back,
-              color: colorScheme.onPrimary,
+              color: Colors.white,
             ),
             onPressed: () {
               feedbackManager.playFeedback();
@@ -62,13 +63,13 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ListTile(
                       title: Text(
                         'theme_mode'.tr(),
-                        style: TextStyle(
-                            color: colorScheme.primary),
+                        style: const TextStyle(
+                            color: Colors.blue),
                       ),
                       trailing: DropdownButton<ThemeMode>(
-                        value: settingsData.themeMode,
-                        style: TextStyle(
-                            color: colorScheme.primary),
+                        value: data.themeMode,
+                        style: const TextStyle(
+                            color: Colors.blue),
                         dropdownColor:
                             Theme.of(context).scaffoldBackgroundColor,
                         items: [
@@ -76,24 +77,24 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             value: ThemeMode.light,
                             child: Text(
                               'light'.tr(),
-                              style: TextStyle(
-                                  color: colorScheme.primary),
+                              style: const TextStyle(
+                                  color: Colors.blue),
                             ),
                           ),
                           DropdownMenuItem(
                             value: ThemeMode.dark,
                             child: Text(
                               'dark'.tr(),
-                              style: TextStyle(
-                                  color: colorScheme.primary),
+                              style: const TextStyle(
+                                  color: Colors.blue),
                             ),
                           ),
                           DropdownMenuItem(
                             value: ThemeMode.system,
                             child: Text(
                               'system'.tr(),
-                              style: TextStyle(
-                                  color: colorScheme.primary),
+                              style: const TextStyle(
+                                  color: Colors.blue),
                             ),
                           ),
                         ],
@@ -101,7 +102,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                           await feedbackManager.playFeedback();
                           if (value != null) {
                             await ref
-                                .read(settingsNotifierProvider.notifier)
+                                .read(settings.settingsNotifierProvider.notifier)
                                 .setThemeMode(value);
                           }
                         },
@@ -109,102 +110,96 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
 
                     // Theme Color Selector
-                    ListTile(
-                      title: Text(
-                        'theme_color'.tr(),
-                        style: TextStyle(
-                            color: colorScheme.primary),
-                      ),
-                      trailing: DropdownButton<ThemeType>(
-                        value: ref
-                            .watch(settingsNotifierProvider)
-                            .value!
-                            .themeType,
-                        style: TextStyle(
-                            color: colorScheme.primary),
-                        dropdownColor:
-                            Theme.of(context).scaffoldBackgroundColor,
-                        items: ThemeType.values
-                            .where((type) => !(
-                                // Filter out white in light mode and black in dark mode
-                                (type == ThemeType.white &&
-                                        Theme.of(context).brightness ==
-                                            Brightness.light) ||
-                                    (type == ThemeType.black &&
-                                        Theme.of(context).brightness ==
-                                            Brightness.dark)))
-                            .map((type) {
-                          return DropdownMenuItem(
-                            value: type,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Container(
-                                  width: 16,
-                                  height: 16,
-                                  margin: const EdgeInsets.only(right: 8),
-                                  decoration: BoxDecoration(
-                                    color: ref
-                                        .read(settingsNotifierProvider)
-                                        .value!
-                                        .getThemeColor(type)
-                                        .primary,
-                                    shape: BoxShape.circle,
-                                  ),
-                                ),
-                                Text(
-                                  'colors.${type.name}'.tr(),
-                                  style: TextStyle(
-                                      color: colorScheme.primary),
-                                ),
-                              ],
-                            ),
-                          );
-                        }).toList(),
-                        onChanged: (ThemeType? value) async {
-                          await feedbackManager.playFeedback();
-                          if (value != null) {
-                            ref
-                                .read(settingsNotifierProvider.notifier)
-                                .setThemeType(value);
-                          }
-                        },
-                      ),
-                    ),
+                    // ListTile(
+                    //   title: Text(
+                    //     'theme_color'.tr(),
+                    //     style: const TextStyle(
+                    //         color: Colors.blue),
+                    //   ),
+                    //   trailing: DropdownButton<ThemeType>(
+                    //     value: data.themeType,
+                    //     style: const TextStyle(
+                    //         color: Colors.blue),
+                    //     dropdownColor:
+                    //         Theme.of(context).scaffoldBackgroundColor,
+                    //     items: ThemeType.values
+                    //         .where((type) => !(
+                    //             // Filter out white in light mode and black in dark mode
+                    //             (type == ThemeType.white &&
+                    //                     Theme.of(context).brightness ==
+                    //                         Brightness.light) ||
+                    //                 (type == ThemeType.black &&
+                    //                     Theme.of(context).brightness ==
+                    //                         Brightness.dark)))
+                    //         .map((type) {
+                    //       return DropdownMenuItem(
+                    //         value: type,
+                    //         child: Row(
+                    //           mainAxisSize: MainAxisSize.min,
+                    //           children: [
+                    //             Container(
+                    //               width: 16,
+                    //               height: 16,
+                    //               margin: const EdgeInsets.only(right: 8),
+                    //               decoration: BoxDecoration(
+                    //                 color: data.getThemeColor(type)
+                    //                     .primary,
+                    //                 shape: BoxShape.circle,
+                    //               ),
+                    //             ),
+                    //             Text(
+                    //               'colors.${type.name}'.tr(),
+                    //               style: const TextStyle(
+                    //                   color: Colors.blue),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       );
+                    //     }).toList(),
+                    //     onChanged: (ThemeType? value) async {
+                    //       await feedbackManager.playFeedback();
+                    //       if (value != null) {
+                    //         ref
+                    //             .read(settings.settingsNotifierProvider.notifier)
+                    //             .setThemeType(value);
+                    //       }
+                    //     },
+                    //   ),
+                    // ),
 
                     // Grid Toggle
-                    SwitchListTile(
-                      title: Text(
-                        'show_grid'.tr(),
-                        style: TextStyle(
-                            color: colorScheme.primary),
-                      ),
-                      value: settingsData.showGrid,
-                      onChanged: (bool value) async {
-                        await feedbackManager.playFeedback();
-                        await ref
-                            .read(settingsNotifierProvider.notifier)
-                            .setShowGrid(value);
-                      },
-                    ),
+                    // SwitchListTile(
+                    //   title: Text(
+                    //     'show_grid'.tr(),
+                    //     style: const TextStyle(
+                    //         color: Colors.blue),
+                    //   ),
+                    //   value: data.showGrid,
+                    //   onChanged: (bool value) async {
+                    //     await feedbackManager.playFeedback();
+                    //     await ref
+                    //         .read(settings.settingsNotifierProvider.notifier)
+                    //         .setShowGrid(value);
+                    //   },
+                    // ),
 
                     // Haptics Toggle
                     SwitchListTile(
                       title: Text(
                         'enable_haptics'.tr(),
-                        style: TextStyle(
-                            color: colorScheme.primary),
+                        style: const TextStyle(
+                            color: Colors.blue),
                       ),
                       subtitle: Text(
                         'enable_haptics_description'.tr(),
-                        style: TextStyle(
-                            color: colorScheme.primary),
+                        style: const TextStyle(
+                            color: Colors.blue),
                       ),
-                      value: settingsData.enableHaptics,
+                      value: data.enableHaptics,
                       onChanged: (bool value) async {
                         await feedbackManager.playFeedback();
                         await ref
-                            .read(settingsNotifierProvider.notifier)
+                            .read(settings.settingsNotifierProvider.notifier)
                             .setEnableHaptics(value);
                       },
                     ),
@@ -213,19 +208,19 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     SwitchListTile(
                       title: Text(
                         'enable_sound'.tr(),
-                        style: TextStyle(
-                            color: colorScheme.primary),
+                        style: const TextStyle(
+                            color: Colors.blue),
                       ),
                       subtitle: Text(
                         'enable_sound_description'.tr(),
-                        style: TextStyle(
-                            color: colorScheme.primary),
+                        style: const TextStyle(
+                            color: Colors.blue),
                       ),
-                      value: settingsData.enableSound,
+                      value: data.enableSound,
                       onChanged: (bool value) async {
                         await feedbackManager.playFeedback();
                         await ref
-                            .read(settingsNotifierProvider.notifier)
+                            .read(settings.settingsNotifierProvider.notifier)
                             .setEnableSound(value);
                       },
                     ),
@@ -234,15 +229,15 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ListTile(
                       title: Text(
                         'language'.tr(),
-                        style: TextStyle(
-                            color: colorScheme.primary),
+                        style: const TextStyle(
+                            color: Colors.blue),
                       ),
                       trailing: DropdownButton<String>(
-                        value: settingsData.languageCode == 'br'
+                        value: data.languageCode == 'br'
                             ? 'en'
-                            : settingsData.languageCode,
-                        style: TextStyle(
-                            color: colorScheme.primary),
+                            : data.languageCode,
+                        style: const TextStyle(
+                            color: Colors.blue),
                         dropdownColor:
                             Theme.of(context).scaffoldBackgroundColor,
                         items: _buildLanguageMenuItems(context),
@@ -254,7 +249,7 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                               context.setLocale(locale);
                             }
                             await ref
-                                .read(settingsNotifierProvider.notifier)
+                                .read(settings.settingsNotifierProvider.notifier)
                                 .setLanguage(newLanguageCode);
                           }
                         },

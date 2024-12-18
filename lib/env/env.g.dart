@@ -9,8 +9,7 @@ part of 'env.dart';
 // coverage:ignore-file
 // ignore_for_file: type=lint
 final class _Env {
-  static const String revenueCatApiKeyAndroid =
-      'goog_dMIEUWihZbrUDRzpSmFwDQPRoSJ';
+  static const String revenueCatApiKeyAndroid = 'your_android_api_key_here';
 
-  static const String revenueCatApiKeyIos = 'appl_nRQoCcnobClcONPlvcJnJzmUcYM';
+  static const String revenueCatApiKeyIos = 'your_ios_api_key_here';
 }
