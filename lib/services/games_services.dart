@@ -1,7 +1,7 @@
 import 'package:games_services/games_services.dart';
 
 class GameServicesConstants {
-  static const String androidLeaderboardID = '';
+  static const String androidLeaderboardID = 'CgkIi_-A4twQEAIQAQ';
   static const String iosLeaderboardID = '3F2734099F8448F28E609463FAABAB9D';
 }
 
