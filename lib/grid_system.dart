@@ -70,36 +70,31 @@ class GridSystem {
     if (gridBox == null) return const GridPosition(0, 0);
 
     final localPosition = gridBox.globalToLocal(screenPosition);
-    print('Local position: $localPosition');
-    print('Grid size: ${gridBox.size}');
     
-    // Add a margin of half a cell size for better edge detection
-    final margin = cellSize * 0.5;
-    
-    // Calculate grid position based on cell size first
+    // Calculate grid position with floating-point precision
     final exactRow = localPosition.dy / cellSize;
     final exactCol = localPosition.dx / cellSize;
-    print('Exact position before clamping: ($exactRow, $exactCol)');
-
-    // Clamp the grid position to valid coordinates, including margin
-    final rowPosition = _clampInt(
-      exactRow.round(),
-      -1,  // Allow one cell outside
-      rows
-    );
-    final colPosition = _clampInt(
-      exactCol.round(),
-      -1,  // Allow one cell outside
-      cols
-    );
-    print('Position after first clamp: ($rowPosition, $colPosition)');
-
-    // Final clamp to ensure the entire pattern fits within the grid
-    final finalRow = _clampInt(rowPosition, 0, rows - pattern.height);
-    final finalCol = _clampInt(colPosition, 0, cols - pattern.width);
-    print('Final position: ($finalRow, $finalCol)');
     
-    return GridPosition(finalRow, finalCol);
+    // Round to nearest grid position
+    final roundedRow = exactRow.round();
+    final roundedCol = exactCol.round();
+    
+    // Calculate the distance to the rounded position
+    final rowDist = (exactRow - roundedRow).abs();
+    final colDist = (exactCol - roundedCol).abs();
+    
+    // Use threshold for snapping - if we're very close to a grid position, snap to it
+    const snapThreshold = 0.2; // Adjust this value to control snapping sensitivity
+    
+    // Determine final position with snapping
+    final finalRow = rowDist < snapThreshold ? roundedRow : exactRow.floor();
+    final finalCol = colDist < snapThreshold ? roundedCol : exactCol.floor();
+    
+    // Clamp the position to ensure the pattern stays within grid bounds
+    return GridPosition(
+      _clampInt(finalRow, 0, rows - pattern.height),
+      _clampInt(finalCol, 0, cols - pattern.width),
+    );
   }
 
   // Check if a position is within grid bounds
