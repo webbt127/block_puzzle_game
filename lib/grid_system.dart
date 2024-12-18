@@ -23,29 +23,13 @@ class GridSystem {
   final double cellSize;
   final EdgeInsets padding;
   final GlobalKey gridKey = GlobalKey();
-  static VideoPlayerController? videoController;
 
   GridSystem({
     required this.rows,
     required this.cols,
     required this.cellSize,
     this.padding = const EdgeInsets.all(16.0),
-  }) {
-    _initializeVideo();
-  }
-
-  void _initializeVideo() async {
-    videoController ??= VideoPlayerController.asset('assets/flag_wave.mp4')
-        ..setLooping(true)
-        ..initialize().then((_) {
-          videoController?.play();
-        });
-  }
-
-  static void dispose() {
-    videoController?.dispose();
-    videoController = null;
-  }
+  });
 
   // Helper method to get grid box
   RenderBox? _getGridRenderBox() {

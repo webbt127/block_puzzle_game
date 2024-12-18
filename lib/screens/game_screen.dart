@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:video_player/video_player.dart';
 import 'dart:math' as math;
 import 'dart:math';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
@@ -10,6 +9,7 @@ import '../block_patterns.dart';
 import '../game_over_popup.dart';
 import '../widgets/patriotic_container.dart';
 import '../widgets/patriotic_block_pattern.dart';
+import '../widgets/patriotic_grid_overlay.dart';
 import '../pardon_popup.dart';
 import '../services/ad_service.dart';
 import '../services/games_services.dart';
@@ -68,7 +68,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   @override
   void dispose() {
     _bannerAd?.dispose();
-    GridSystem.dispose();
+    //GridSystem.dispose();
     super.dispose();
   }
 
@@ -283,26 +283,21 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                       
                       return Stack(
                         children: [
-                          if (GridSystem.videoController?.value.isInitialized ?? false)
-                            Padding(
-                              padding: EdgeInsets.symmetric(
-                                horizontal: math.max(0, horizontalPadding),
-                                vertical: math.max(0, verticalPadding),
-                              ),
-                              child: AspectRatio(
-                                aspectRatio: 1.0,
-                                child: ClipRect(
-                                  child: FittedBox(
-                                    fit: BoxFit.cover,
-                                    child: SizedBox(
-                                      width: GridSystem.videoController!.value.size.width,
-                                      height: GridSystem.videoController!.value.size.height,
-                                      child: VideoPlayer(GridSystem.videoController!),
-                                    ),
-                                  ),
-                                ),
+                          // Patriotic grid overlay for filled cells
+                          Padding(
+                            padding: EdgeInsets.symmetric(
+                              horizontal: math.max(0, horizontalPadding),
+                              vertical: math.max(0, verticalPadding),
+                            ),
+                            child: AspectRatio(
+                              aspectRatio: 1.0,
+                              child: PatrioticGridOverlay(
+                                gameBoard: gameBoard,
+                                cellSize: cellSize,
                               ),
                             ),
+                          ),
+                          // Grid and drag target
                           Padding(
                             padding: EdgeInsets.symmetric(
                               horizontal: math.max(0, horizontalPadding),
