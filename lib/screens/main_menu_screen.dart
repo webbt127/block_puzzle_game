@@ -27,8 +27,7 @@ class _MainMenuScreenState extends ConsumerState<MainMenuScreen> {
   Future<void> _rateApp() async {
     final Uri url = Platform.isIOS
         ? Uri.parse('https://apps.apple.com/app/6739540042')
-        : Uri.parse(
-            '');
+        : Uri.parse('https://play.google.com/store/apps/details?id=com.apparchitects.blockpuzzle');
 
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
@@ -45,6 +44,54 @@ class _MainMenuScreenState extends ConsumerState<MainMenuScreen> {
       body: SafeArea(
         child: Stack(
           children: [
+            Positioned(
+              top: 10,
+              right: 10,
+              child: Row(
+                children: [
+                  IconButton(
+                    icon: Icon(Icons.leaderboard_outlined, color: colorScheme.primary),
+                    onPressed: () async {
+                      await feedbackManager.playFeedback();
+                      GameServicesService.showLeaderboard();
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.shopping_bag_outlined, color: colorScheme.primary),
+                    onPressed: () async {
+                      await feedbackManager.playFeedback();
+                      if (!context.mounted) return;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const StoreScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.star_border, color: colorScheme.primary),
+                    onPressed: () async {
+                      await feedbackManager.playFeedback();
+                      await _rateApp();
+                    },
+                  ),
+                  IconButton(
+                    icon: Icon(Icons.settings, color: colorScheme.primary),
+                    onPressed: () async {
+                      await feedbackManager.playFeedback();
+                      if (!context.mounted) return;
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const SettingsScreen(),
+                        ),
+                      );
+                    },
+                  ),
+                ],
+              ),
+            ),
             Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -110,128 +157,11 @@ class _MainMenuScreenState extends ConsumerState<MainMenuScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        // Secondary Buttons (Smaller)
-                        SizedBox(
-                          width: 160,
-                          child: OutlinedButton(
-                            onPressed: () async {
-                              await feedbackManager.playFeedback();
-                              if (!context.mounted) return;
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const SettingsScreen(),
-                                ),
-                              );
-                            },
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: colorScheme.primary,
-                              side: BorderSide(color: colorScheme.primary, width: 2),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                            child: Text(
-                              'settings'.tr(),
-                              style: const TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 16),
-                        SizedBox(
-                          width: 160,
-                          child: OutlinedButton(
-                            onPressed: () async {
-                              await feedbackManager.playFeedback();
-                              await _rateApp();
-                            },
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: colorScheme.primary,
-                              side: BorderSide(color: colorScheme.primary, width: 2),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                            child: Text(
-                              'rate_us'.tr(),
-                              style: const TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: 160,
-                          child: OutlinedButton(
-                            onPressed: () async {
-                              await feedbackManager.playFeedback();
-                              if (!context.mounted) return;
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const StoreScreen(),
-                                ),
-                              );
-                            },
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: colorScheme.primary,
-                              side: BorderSide(color: colorScheme.primary, width: 2),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                            child: Text(
-                              'store'.tr(),
-                              style: const TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        SizedBox(
-                          width: 160,
-                          child: OutlinedButton(
-                            onPressed: () async {
-                              await feedbackManager.playFeedback();
-                              GameServicesService.showLeaderboard();
-                            },
-                            style: OutlinedButton.styleFrom(
-                              foregroundColor: colorScheme.primary,
-                              side: BorderSide(color: colorScheme.primary, width: 2),
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 12),
-                            ),
-                            child: Text(
-                              'leaderboard'.tr(),
-                              style: const TextStyle(fontWeight: FontWeight.w600),
-                            ),
-                          ),
-                        ),
                       ],
                     ),
                   ),
                   const SizedBox(height: 16),
                 ],
-              ),
-            ),
-            // About button positioned absolutely
-            Positioned(
-              right: 16,
-              top: 16,
-              child: IconButton(
-                icon: Icon(
-                  Icons.info_outline,
-                  color: colorScheme.primary,
-                  size: 28,
-                ),
-                onPressed: () async {
-                  await feedbackManager.playFeedback();
-                  if (!context.mounted) return;
-                  Navigator.pushNamed(context, '/about');
-                },
               ),
             ),
           ],

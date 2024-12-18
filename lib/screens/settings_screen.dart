@@ -108,81 +108,8 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         },
                       ),
                     ),
-
-                    // Theme Color Selector
-                    // ListTile(
-                    //   title: Text(
-                    //     'theme_color'.tr(),
-                    //     style: const TextStyle(
-                    //         color: Colors.blue),
-                    //   ),
-                    //   trailing: DropdownButton<ThemeType>(
-                    //     value: data.themeType,
-                    //     style: const TextStyle(
-                    //         color: Colors.blue),
-                    //     dropdownColor:
-                    //         Theme.of(context).scaffoldBackgroundColor,
-                    //     items: ThemeType.values
-                    //         .where((type) => !(
-                    //             // Filter out white in light mode and black in dark mode
-                    //             (type == ThemeType.white &&
-                    //                     Theme.of(context).brightness ==
-                    //                         Brightness.light) ||
-                    //                 (type == ThemeType.black &&
-                    //                     Theme.of(context).brightness ==
-                    //                         Brightness.dark)))
-                    //         .map((type) {
-                    //       return DropdownMenuItem(
-                    //         value: type,
-                    //         child: Row(
-                    //           mainAxisSize: MainAxisSize.min,
-                    //           children: [
-                    //             Container(
-                    //               width: 16,
-                    //               height: 16,
-                    //               margin: const EdgeInsets.only(right: 8),
-                    //               decoration: BoxDecoration(
-                    //                 color: data.getThemeColor(type)
-                    //                     .primary,
-                    //                 shape: BoxShape.circle,
-                    //               ),
-                    //             ),
-                    //             Text(
-                    //               'colors.${type.name}'.tr(),
-                    //               style: const TextStyle(
-                    //                   color: Colors.blue),
-                    //             ),
-                    //           ],
-                    //         ),
-                    //       );
-                    //     }).toList(),
-                    //     onChanged: (ThemeType? value) async {
-                    //       await feedbackManager.playFeedback();
-                    //       if (value != null) {
-                    //         ref
-                    //             .read(settings.settingsNotifierProvider.notifier)
-                    //             .setThemeType(value);
-                    //       }
-                    //     },
-                    //   ),
-                    // ),
-
-                    // Grid Toggle
-                    // SwitchListTile(
-                    //   title: Text(
-                    //     'show_grid'.tr(),
-                    //     style: const TextStyle(
-                    //         color: Colors.blue),
-                    //   ),
-                    //   value: data.showGrid,
-                    //   onChanged: (bool value) async {
-                    //     await feedbackManager.playFeedback();
-                    //     await ref
-                    //         .read(settings.settingsNotifierProvider.notifier)
-                    //         .setShowGrid(value);
-                    //   },
-                    // ),
-
+                    const Divider(),
+                    
                     // Haptics Toggle
                     SwitchListTile(
                       title: Text(
@@ -225,34 +152,23 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                       },
                     ),
 
-                    // Language Selector
-                    // ListTile(
-                    //   title: Text(
-                    //     'language'.tr(),
-                    //     style: const TextStyle(
-                    //         color: Colors.blue),
-                    //   ),
-                    //   trailing: DropdownButton<String>(
-                    //     value: data.languageCode,
-                    //     style: const TextStyle(
-                    //         color: Colors.blue),
-                    //     dropdownColor:
-                    //         Theme.of(context).scaffoldBackgroundColor,
-                    //     items: _buildLanguageMenuItems(context),
-                    //     onChanged: (String? newLanguageCode) async {
-                    //       await feedbackManager.playFeedback();
-                    //       if (newLanguageCode != null) {
-                    //         final locale = Locale(newLanguageCode);
-                    //         if (context.mounted) {
-                    //           context.setLocale(locale);
-                    //         }
-                    //         await ref
-                    //             .read(settings.settingsNotifierProvider.notifier)
-                    //             .setLanguage(newLanguageCode);
-                    //       }
-                    //     },
-                    //   ),
-                    // ),
+                    // Add space before the About section
+                    const SizedBox(height: 40),
+                    const Divider(),
+                    
+                    // About Button
+                    ListTile(
+                      leading: const Icon(Icons.info_outline, color: Colors.blue),
+                      title: Text(
+                        'about'.tr(),
+                        style: const TextStyle(color: Colors.blue),
+                      ),
+                      onTap: () async {
+                        await feedbackManager.playFeedback();
+                        if (!context.mounted) return;
+                        Navigator.pushNamed(context, '/about');
+                      },
+                    ),
                   ],
                 ),
               ),

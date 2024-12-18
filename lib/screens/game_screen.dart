@@ -1,3 +1,6 @@
+import 'dart:io';
+
+import 'package:block_puzzle_game/screens/store_screen.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'dart:math';
@@ -7,13 +10,13 @@ import 'package:block_puzzle_game/providers/feedback_providers.dart';
 import '../grid_system.dart';
 import '../block_patterns.dart';
 import '../game_over_popup.dart';
-import '../widgets/patriotic_container.dart';
 import '../widgets/patriotic_block_pattern.dart';
 import '../widgets/patriotic_grid_overlay.dart';
 import '../pardon_popup.dart';
 import '../services/ad_service.dart';
 import '../services/games_services.dart';
 import '../services/revenue_cat_service.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 const int rows = 8;
 const int columns = 8;
@@ -84,6 +87,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     _bannerAd?.dispose();
     //GridSystem.dispose();
     super.dispose();
+  }
+
+  Future<void> _rateApp() async {
+    final Uri url = Platform.isIOS
+        ? Uri.parse('https://apps.apple.com/app/6739540042')
+        : Uri.parse('https://play.google.com/store/apps/details?id=com.apparchitects.blockpuzzle');
+
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      throw Exception('Could not launch $url');
+    }
   }
 
   void _generateNewPatterns() {
@@ -236,6 +249,45 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                           await ref.read(feedbackManagerProvider).playFeedback();
                           if (!context.mounted) return;
                           Navigator.of(context).pop();
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.leaderboard_outlined,
+                          color: Colors.blue,
+                          size: 32,
+                        ),
+                        onPressed: () async {
+                          await ref.read(feedbackManagerProvider).playFeedback();
+                          GameServicesService.showLeaderboard();
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.shopping_bag_outlined,
+                          color: Colors.blue,
+                          size: 32,
+                        ),
+                        onPressed: () async {
+                          await ref.read(feedbackManagerProvider).playFeedback();
+                          if (!context.mounted) return;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const StoreScreen(),
+                            ),
+                          );
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(
+                          Icons.star_border,
+                          color: Colors.blue,
+                          size: 32,
+                        ),
+                        onPressed: () async {
+                          await ref.read(feedbackManagerProvider).playFeedback();
+                          await _rateApp();
                         },
                       ),
                       IconButton(
