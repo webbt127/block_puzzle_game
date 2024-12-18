@@ -11,5 +11,5 @@ part of 'env.dart';
 final class _Env {
   static const String revenueCatApiKeyAndroid = 'your_android_api_key_here';
 
-  static const String revenueCatApiKeyIos = 'your_ios_api_key_here';
+  static const String revenueCatApiKeyIos = 'appl_SGXlrkJVNgnHEdKqWdHUYpJlJdV';
 }

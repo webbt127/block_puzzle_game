@@ -47,7 +47,7 @@ class RevenueCatService {
   Future<List<StoreProduct>> getProducts() async {
     try {
       print('RevenueCat: Fetching products directly...');
-      final productIds = ['hide_ads', 'premium_upgrade'];
+      final productIds = ['hide_ads_bb', 'premium_upgrade'];
       final customerInfo = await Purchases.getCustomerInfo();
 
       print('RevenueCat: Requesting products with IDs: $productIds');
@@ -123,17 +123,17 @@ class RevenueCatService {
 
   Future<bool> hasHideAds() async {
     try {
-      print('RevenueCat: Checking hide_ads status...');
+      print('RevenueCat: Checking hide_ads_bb status...');
       final customerInfo = await Purchases.getCustomerInfo();
 
       // Check if the product is purchased
       final hasHideAds = customerInfo.nonSubscriptionTransactions
-          .any((transaction) => transaction.productIdentifier == 'hide_ads');
+          .any((transaction) => transaction.productIdentifier == 'hide_ads_bb');
 
       print('RevenueCat: Hide Ads Status: $hasHideAds');
       return hasHideAds;
     } catch (e) {
-      print('RevenueCat: Failed to check hide_ads status: $e');
+      print('RevenueCat: Failed to check hide_ads_bb status: $e');
       return false;
     }
   }
@@ -141,7 +141,7 @@ class RevenueCatService {
   Future<List<StoreProduct>> getPurchasedProducts() async {
     try {
       print('RevenueCat: Fetching purchased products...');
-      final productIds = ['hide_ads', 'premium_upgrade'];
+      final productIds = ['hide_ads_bb', 'premium_upgrade'];
       final customerInfo = await Purchases.getCustomerInfo();
       final products = await Purchases.getProducts(productIds);
 

@@ -13,6 +13,7 @@ import '../widgets/patriotic_grid_overlay.dart';
 import '../pardon_popup.dart';
 import '../services/ad_service.dart';
 import '../services/games_services.dart';
+import '../services/revenue_cat_service.dart';
 
 const int rows = 8;
 const int columns = 8;
@@ -37,6 +38,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   BlockPattern? previewPattern;
   BannerAd? _bannerAd;
   bool _isAdLoaded = false;
+  bool _hideAds = false;  // Track hide ads status
 
   @override
   void initState() {
@@ -47,16 +49,28 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       cellSize: 40,
     );
     _generateNewPatterns();
-    _loadBannerAd();
-    
-    // Load and show interstitial ad at game start
-    AdService.createInterstitialAd();
-    Future.delayed(const Duration(milliseconds: 500), () {
-      AdService.showInterstitialAd();
+    _checkHideAdsStatus();
+  }
+
+  Future<void> _checkHideAdsStatus() async {
+    final hideAdsStatus = await ref.read(hasHideAdsProvider.future);
+    setState(() {
+      _hideAds = hideAdsStatus;
     });
+    
+    if (!_hideAds) {
+      _loadBannerAd();
+      // Load and show interstitial ad at game start
+      AdService.createInterstitialAd();
+      Future.delayed(const Duration(milliseconds: 500), () {
+        AdService.showInterstitialAd();
+      });
+    }
   }
 
   void _loadBannerAd() {
+    if (_hideAds) return;  // Don't load ad if ads are hidden
+    
     _bannerAd = AdService.createBannerAd();
     _bannerAd?.load().then((_) {
       setState(() {
@@ -125,7 +139,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             });
             
             // Show interstitial ad on replay
-            AdService.showInterstitialAd();
+            if (!_hideAds) {
+              AdService.showInterstitialAd();
+            }
             Navigator.of(context).pop();
           },
         );
@@ -465,7 +481,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 },
               ),
             ),
-            if (_bannerAd != null && _isAdLoaded)
+            if (!_hideAds && _bannerAd != null && _isAdLoaded)
               Container(
                 alignment: Alignment.bottomCenter,
                 width: _bannerAd!.size.width.toDouble(),

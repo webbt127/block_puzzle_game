@@ -1,11 +1,5 @@
-import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:video_player/video_player.dart';
 import 'block_patterns.dart';
-import 'dart:math';
-import 'dart:ui' as ui;
 
 class GridPosition {
   final int row;

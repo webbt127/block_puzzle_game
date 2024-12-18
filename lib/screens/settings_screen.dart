@@ -226,35 +226,33 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                     ),
 
                     // Language Selector
-                    ListTile(
-                      title: Text(
-                        'language'.tr(),
-                        style: const TextStyle(
-                            color: Colors.blue),
-                      ),
-                      trailing: DropdownButton<String>(
-                        value: data.languageCode == 'br'
-                            ? 'en'
-                            : data.languageCode,
-                        style: const TextStyle(
-                            color: Colors.blue),
-                        dropdownColor:
-                            Theme.of(context).scaffoldBackgroundColor,
-                        items: _buildLanguageMenuItems(context),
-                        onChanged: (String? newLanguageCode) async {
-                          await feedbackManager.playFeedback();
-                          if (newLanguageCode != null) {
-                            final locale = Locale(newLanguageCode);
-                            if (context.mounted) {
-                              context.setLocale(locale);
-                            }
-                            await ref
-                                .read(settings.settingsNotifierProvider.notifier)
-                                .setLanguage(newLanguageCode);
-                          }
-                        },
-                      ),
-                    ),
+                    // ListTile(
+                    //   title: Text(
+                    //     'language'.tr(),
+                    //     style: const TextStyle(
+                    //         color: Colors.blue),
+                    //   ),
+                    //   trailing: DropdownButton<String>(
+                    //     value: data.languageCode,
+                    //     style: const TextStyle(
+                    //         color: Colors.blue),
+                    //     dropdownColor:
+                    //         Theme.of(context).scaffoldBackgroundColor,
+                    //     items: _buildLanguageMenuItems(context),
+                    //     onChanged: (String? newLanguageCode) async {
+                    //       await feedbackManager.playFeedback();
+                    //       if (newLanguageCode != null) {
+                    //         final locale = Locale(newLanguageCode);
+                    //         if (context.mounted) {
+                    //           context.setLocale(locale);
+                    //         }
+                    //         await ref
+                    //             .read(settings.settingsNotifierProvider.notifier)
+                    //             .setLanguage(newLanguageCode);
+                    //       }
+                    //     },
+                    //   ),
+                    // ),
                   ],
                 ),
               ),
@@ -269,44 +267,44 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
 
   List<DropdownMenuItem<String>> _buildLanguageMenuItems(BuildContext context) {
     return const [
-      DropdownMenuItem(value: 'bg', child: Text('Bulgarian')),
-      DropdownMenuItem(value: 'ca', child: Text('Catalan')),
-      DropdownMenuItem(value: 'cs', child: Text('Czech')),
-      DropdownMenuItem(value: 'cy', child: Text('Welsh')),
-      DropdownMenuItem(value: 'da', child: Text('Danish')),
-      DropdownMenuItem(value: 'de', child: Text('German')),
-      DropdownMenuItem(value: 'el', child: Text('Greek')),
-      DropdownMenuItem(value: 'en', child: Text('English')),
-      DropdownMenuItem(value: 'es', child: Text('Spanish')),
-      DropdownMenuItem(value: 'et', child: Text('Estonian')),
-      DropdownMenuItem(value: 'eu', child: Text('Basque')),
-      DropdownMenuItem(value: 'fa', child: Text('Persian')),
-      DropdownMenuItem(value: 'fr', child: Text('French')),
-      DropdownMenuItem(value: 'gl', child: Text('Galician')),
-      DropdownMenuItem(value: 'hr', child: Text('Croatian')),
-      DropdownMenuItem(value: 'hu', child: Text('Hungarian')),
-      DropdownMenuItem(value: 'hy', child: Text('Armenian')),
-      DropdownMenuItem(value: 'is', child: Text('Icelandic')),
-      DropdownMenuItem(value: 'it', child: Text('Italian')),
-      DropdownMenuItem(value: 'ka', child: Text('Georgian')),
-      DropdownMenuItem(value: 'ko', child: Text('Korean')),
-      DropdownMenuItem(value: 'lt', child: Text('Lithuanian')),
-      DropdownMenuItem(value: 'lv', child: Text('Latvian')),
-      DropdownMenuItem(value: 'mk', child: Text('Macedonian')),
-      DropdownMenuItem(value: 'mn', child: Text('Mongolian')),
-      DropdownMenuItem(value: 'ne', child: Text('Nepali')),
-      DropdownMenuItem(value: 'nl', child: Text('Dutch')),
-      DropdownMenuItem(value: 'pl', child: Text('Polish')),
-      DropdownMenuItem(value: 'pt', child: Text('Portuguese')),
-      DropdownMenuItem(value: 'ro', child: Text('Romanian')),
-      DropdownMenuItem(value: 'ru', child: Text('Russian')),
-      DropdownMenuItem(value: 'sk', child: Text('Slovak')),
-      DropdownMenuItem(value: 'sl', child: Text('Slovenian')),
-      DropdownMenuItem(value: 'sr', child: Text('Serbian')),
-      DropdownMenuItem(value: 'sv', child: Text('Swedish')),
-      DropdownMenuItem(value: 'tr', child: Text('Turkish')),
-      DropdownMenuItem(value: 'uk', child: Text('Ukrainian')),
-      DropdownMenuItem(value: 'vi', child: Text('Vietnamese')),
+      // DropdownMenuItem(value: 'bg', child: Text('Bulgarian')),
+      // DropdownMenuItem(value: 'ca', child: Text('Catalan')),
+      // DropdownMenuItem(value: 'cs', child: Text('Czech')),
+      // DropdownMenuItem(value: 'cy', child: Text('Welsh')),
+      // DropdownMenuItem(value: 'da', child: Text('Danish')),
+      // DropdownMenuItem(value: 'de', child: Text('German')),
+      // DropdownMenuItem(value: 'el', child: Text('Greek')),
+      // DropdownMenuItem(value: 'en', child: Text('English')),
+      // DropdownMenuItem(value: 'es', child: Text('Spanish')),
+      // DropdownMenuItem(value: 'et', child: Text('Estonian')),
+      // DropdownMenuItem(value: 'eu', child: Text('Basque')),
+      // DropdownMenuItem(value: 'fa', child: Text('Persian')),
+      // DropdownMenuItem(value: 'fr', child: Text('French')),
+      // DropdownMenuItem(value: 'gl', child: Text('Galician')),
+      // DropdownMenuItem(value: 'hr', child: Text('Croatian')),
+      // DropdownMenuItem(value: 'hu', child: Text('Hungarian')),
+      // DropdownMenuItem(value: 'hy', child: Text('Armenian')),
+      // DropdownMenuItem(value: 'is', child: Text('Icelandic')),
+      // DropdownMenuItem(value: 'it', child: Text('Italian')),
+      // DropdownMenuItem(value: 'ka', child: Text('Georgian')),
+      // DropdownMenuItem(value: 'ko', child: Text('Korean')),
+      // DropdownMenuItem(value: 'lt', child: Text('Lithuanian')),
+      // DropdownMenuItem(value: 'lv', child: Text('Latvian')),
+      // DropdownMenuItem(value: 'mk', child: Text('Macedonian')),
+      // DropdownMenuItem(value: 'mn', child: Text('Mongolian')),
+      // DropdownMenuItem(value: 'ne', child: Text('Nepali')),
+      // DropdownMenuItem(value: 'nl', child: Text('Dutch')),
+      // DropdownMenuItem(value: 'pl', child: Text('Polish')),
+      // DropdownMenuItem(value: 'pt', child: Text('Portuguese')),
+      // DropdownMenuItem(value: 'ro', child: Text('Romanian')),
+      // DropdownMenuItem(value: 'ru', child: Text('Russian')),
+      // DropdownMenuItem(value: 'sk', child: Text('Slovak')),
+      // DropdownMenuItem(value: 'sl', child: Text('Slovenian')),
+      // DropdownMenuItem(value: 'sr', child: Text('Serbian')),
+      // DropdownMenuItem(value: 'sv', child: Text('Swedish')),
+      // DropdownMenuItem(value: 'tr', child: Text('Turkish')),
+      // DropdownMenuItem(value: 'uk', child: Text('Ukrainian')),
+      // DropdownMenuItem(value: 'vi', child: Text('Vietnamese')),
     ];
   }
 }
