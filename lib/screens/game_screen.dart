@@ -486,43 +486,56 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                       final dragCellSize = gridSystem.cellSize * 0.75; // Larger size when dragging
                       return SizedBox(
                         width: itemWidth,
-                        child: Draggable<BlockPattern>(
-                          data: pattern,
-                          onDragStarted: () {
-                            ref.read(feedbackManagerProvider).playFeedback();
-                          },
-                          feedback: Transform.scale(
-                            scale: 1.3, // Slightly larger when dragging
-                            child: PatrioticBlockPatternWidget(
-                              pattern: pattern,
-                              cellSize: dragCellSize,
-                            ),
-                          ),
-                          childWhenDragging: Opacity(
-                            opacity: 0.3,
-                            child: PatrioticBlockPatternWidget(
-                              pattern: pattern,
-                              cellSize: smallCellSize,
-                            ),
-                          ),
-                          child: Container(
-                            padding: const EdgeInsets.all(8.0),
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.grey[900]
-                                  : Colors.white,
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.blue.withOpacity(0.3)
-                                    : Colors.blue.withOpacity(0.2),
-                                width: 2,
+                        child: Center(
+                          child: SizedBox(
+                            width: pattern.width * dragCellSize,
+                            height: pattern.height * dragCellSize * 1.2,
+                            child: Draggable<BlockPattern>(
+                              data: pattern,
+                              dragAnchorStrategy: (draggable, context, position) {
+                                // Return the center of the pattern
+                                return Offset(
+                                  pattern.width * dragCellSize / 2,
+                                  pattern.height * dragCellSize / 2
+                                );
+                              },
+                              onDragStarted: () {
+                                ref.read(feedbackManagerProvider).playFeedback();
+                              },
+                              feedback: Transform.scale(
+                                scale: 1.3, // Slightly larger when dragging
+                                child: PatrioticBlockPatternWidget(
+                                  pattern: pattern,
+                                  cellSize: dragCellSize,
+                                ),
                               ),
-                            ),
-                            child: Center(
-                              child: PatrioticBlockPatternWidget(
-                                pattern: pattern,
-                                cellSize: smallCellSize,
+                              childWhenDragging: Opacity(
+                                opacity: 0.3,
+                                child: PatrioticBlockPatternWidget(
+                                  pattern: pattern,
+                                  cellSize: smallCellSize,
+                                ),
+                              ),
+                              child: Container(
+                            padding: const EdgeInsets.all(6.0),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).brightness == Brightness.dark
+                                      ? Colors.grey[900]
+                                      : Colors.white,
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: Theme.of(context).brightness == Brightness.dark
+                                        ? Colors.blue.withOpacity(0.3)
+                                        : Colors.blue.withOpacity(0.2),
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Center(
+                                  child: PatrioticBlockPatternWidget(
+                                    pattern: pattern,
+                                    cellSize: smallCellSize,
+                                  ),
+                                ),
                               ),
                             ),
                           ),
