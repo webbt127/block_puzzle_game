@@ -4,11 +4,13 @@ import '../block_patterns.dart';
 class PatrioticBlockPattern extends StatefulWidget {
   final BlockPattern pattern;
   final double cellSize;
+  final bool isDarkMode;
 
   const PatrioticBlockPattern({
     super.key,
     required this.pattern,
     required this.cellSize,
+    required this.isDarkMode,
   });
 
   @override
@@ -21,8 +23,9 @@ class _PatrioticBlockPatternState extends State<PatrioticBlockPattern> {
   int _colorIndex = 0;
   final List<Color> _colors = [
     Colors.red[900]!,
-    Colors.white.withOpacity(0.5),
+    Colors.red[700]!,
     Colors.blue[900]!,
+    Colors.blue[700]!,
   ];
 
   @override
@@ -42,6 +45,7 @@ class _PatrioticBlockPatternState extends State<PatrioticBlockPattern> {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TweenAnimationBuilder<Color?>(
       tween: _colorTween,
       duration: const Duration(seconds: 3),
@@ -65,6 +69,7 @@ class _PatrioticBlockPatternState extends State<PatrioticBlockPattern> {
               pattern: widget.pattern,
               cellSize: widget.cellSize,
               color: color ?? _currentColor,
+              isDarkMode: isDark,
             ),
           ),
         );
@@ -77,51 +82,97 @@ class PatrioticBlockPatternPainter extends CustomPainter {
   final BlockPattern pattern;
   final double cellSize;
   final Color color;
+  final bool isDarkMode;
 
   PatrioticBlockPatternPainter({
     required this.pattern,
     required this.cellSize,
     required this.color,
+    required this.isDarkMode,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final patternRect = Rect.fromLTWH(
-      -pattern.width * cellSize,
-      -pattern.height * cellSize,
-      pattern.width * cellSize * 3,
-      pattern.height * cellSize * 3,
-    );
-
-    final gradient = LinearGradient(
-      colors: [color, color],
-      stops: const [0.0, 1.0],
-      begin: const Alignment(-2.0, -2.0),
-      end: const Alignment(3.5, 3.5),
-    );
-
-    final gradientPaint = Paint()
-      ..shader = gradient.createShader(patternRect)
-      ..style = PaintingStyle.fill;
-
-    // Draw each cell in the pattern
-    for (var y = 0; y < pattern.height; y++) {
-      for (var x = 0; x < pattern.width; x++) {
-        if (pattern.shape[y][x]) {
+    for (int i = 0; i < pattern.height; i++) {
+      for (int j = 0; j < pattern.width; j++) {
+        if (pattern.shape[i][j]) {
           final rect = Rect.fromLTWH(
-            x * cellSize,
-            y * cellSize,
+            j * cellSize,
+            i * cellSize,
             cellSize,
             cellSize,
           );
-          canvas.drawRect(rect, gradientPaint);
+
+          // Base color with gradient
+          final baseGradient = LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              color.withOpacity(1.0),
+              color.withOpacity(0.8),
+            ],
+          );
+
+          canvas.drawRect(
+            rect,
+            Paint()
+              ..shader = baseGradient.createShader(rect)
+              ..style = PaintingStyle.fill,
+          );
+
+          // Inner shadow at bottom and right
+          final innerShadowPath = Path()
+            ..moveTo(rect.right, rect.top)
+            ..lineTo(rect.right, rect.bottom)
+            ..lineTo(rect.left, rect.bottom);
+
+          canvas.drawPath(
+            innerShadowPath,
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..color = Colors.black.withOpacity(isDarkMode ? 0.5 : 0.3)
+              ..strokeWidth = 3.0,
+          );
+
+          // Top highlight
+          final highlightPath = Path()
+            ..moveTo(rect.left, rect.bottom)
+            ..lineTo(rect.left, rect.top)
+            ..lineTo(rect.right, rect.top);
+
+          canvas.drawPath(
+            highlightPath,
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..color = Colors.white.withOpacity(isDarkMode ? 0.3 : 0.4)
+              ..strokeWidth = 2.0,
+          );
+
+          // Border
+          final borderPaint = Paint()
+            ..style = PaintingStyle.stroke
+            ..color = isDarkMode 
+                ? Colors.grey[900]!.withOpacity(0.5)
+                : Colors.white.withOpacity(0.1)
+            ..strokeWidth = 1.0;
+
+          canvas.drawRect(rect, borderPaint);
+
+          // Subtle outer glow
+          if (!isDarkMode) {
+            final glowPaint = Paint()
+              ..style = PaintingStyle.stroke
+              ..color = color.withOpacity(0.2)
+              ..strokeWidth = 1.0
+              ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 2);
+
+            canvas.drawRect(rect, glowPaint);
+          }
         }
       }
     }
   }
 
   @override
-  bool shouldRepaint(PatrioticBlockPatternPainter oldDelegate) {
-    return oldDelegate.color != color;
-  }
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

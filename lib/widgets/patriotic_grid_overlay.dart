@@ -3,11 +3,13 @@ import 'package:flutter/material.dart';
 class PatrioticGridOverlay extends StatefulWidget {
   final List<List<bool>> gameBoard;
   final double cellSize;
+  final bool isDarkMode;
 
   const PatrioticGridOverlay({
     super.key,
     required this.gameBoard,
     required this.cellSize,
+    required this.isDarkMode,
   });
 
   @override
@@ -20,8 +22,9 @@ class _PatrioticGridOverlayState extends State<PatrioticGridOverlay> {
   int _colorIndex = 0;
   final List<Color> _colors = [
     Colors.red[900]!,
-    Colors.white.withOpacity(0.5),
+    Colors.red[700]!,
     Colors.blue[900]!,
+    Colors.blue[700]!,
   ];
 
   @override
@@ -64,6 +67,7 @@ class _PatrioticGridOverlayState extends State<PatrioticGridOverlay> {
               gameBoard: widget.gameBoard,
               cellSize: widget.cellSize,
               color: color ?? _currentColor,
+              isDarkMode: widget.isDarkMode,
             ),
           ),
         );
@@ -76,44 +80,92 @@ class PatrioticGridOverlayPainter extends CustomPainter {
   final List<List<bool>> gameBoard;
   final double cellSize;
   final Color color;
+  final bool isDarkMode;
 
   PatrioticGridOverlayPainter({
     required this.gameBoard,
     required this.cellSize,
     required this.color,
+    required this.isDarkMode,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
-    final gridRect = Rect.fromLTWH(
-      -size.width * 0.5,
-      -size.height * 0.5,
-      size.width * 2,
-      size.height * 2,
-    );
-
-    final gradient = LinearGradient(
-      colors: [color, color],
-      stops: const [0.0, 1.0],
-      begin: const Alignment(-2.0, -2.0),
-      end: const Alignment(3.5, 3.5),
-    );
-
-    final gradientPaint = Paint()
-      ..shader = gradient.createShader(gridRect)
-      ..style = PaintingStyle.fill;
-
-    // Draw each cell in the grid
-    for (var y = 0; y < gameBoard.length; y++) {
-      for (var x = 0; x < gameBoard[y].length; x++) {
-        if (gameBoard[y][x]) {
+    for (int i = 0; i < gameBoard.length; i++) {
+      for (int j = 0; j < gameBoard[i].length; j++) {
+        if (gameBoard[i][j]) {
           final rect = Rect.fromLTWH(
-            x * cellSize,
-            y * cellSize,
+            j * cellSize,
+            i * cellSize,
             cellSize,
             cellSize,
           );
-          canvas.drawRect(rect, gradientPaint);
+
+          // Base color with gradient
+          final baseGradient = LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              color.withOpacity(1.0),
+              color.withOpacity(0.8),
+            ],
+          );
+
+          canvas.drawRect(
+            rect,
+            Paint()
+              ..shader = baseGradient.createShader(rect)
+              ..style = PaintingStyle.fill,
+          );
+
+          // Inner shadow at bottom and right
+          final innerShadowPath = Path()
+            ..moveTo(rect.right, rect.top)
+            ..lineTo(rect.right, rect.bottom)
+            ..lineTo(rect.left, rect.bottom);
+
+          canvas.drawPath(
+            innerShadowPath,
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..color = Colors.black.withOpacity(isDarkMode ? 0.5 : 0.3)
+              ..strokeWidth = 3.0,
+          );
+
+          // Top highlight
+          final highlightPath = Path()
+            ..moveTo(rect.left, rect.bottom)
+            ..lineTo(rect.left, rect.top)
+            ..lineTo(rect.right, rect.top);
+
+          canvas.drawPath(
+            highlightPath,
+            Paint()
+              ..style = PaintingStyle.stroke
+              ..color = Colors.white.withOpacity(isDarkMode ? 0.3 : 0.4)
+              ..strokeWidth = 2.0,
+          );
+
+          // Border
+          final borderPaint = Paint()
+            ..style = PaintingStyle.stroke
+            ..color = isDarkMode 
+                ? Colors.grey[900]!.withOpacity(0.5)
+                : Colors.white.withOpacity(0.1)
+            ..strokeWidth = 1.0;
+
+          canvas.drawRect(rect, borderPaint);
+
+          // Subtle outer glow
+          if (!isDarkMode) {
+            final glowPaint = Paint()
+              ..style = PaintingStyle.stroke
+              ..color = color.withOpacity(0.2)
+              ..strokeWidth = 1.0
+              ..maskFilter = const MaskFilter.blur(BlurStyle.outer, 2);
+
+            canvas.drawRect(rect, glowPaint);
+          }
         }
       }
     }
@@ -121,6 +173,6 @@ class PatrioticGridOverlayPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(PatrioticGridOverlayPainter oldDelegate) {
-    return oldDelegate.color != color;
+    return oldDelegate.color != color || oldDelegate.isDarkMode != isDarkMode;
   }
 }

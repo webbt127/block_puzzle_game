@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'widgets/patriotic_title.dart';
 
@@ -21,9 +22,27 @@ class _GameOverPopupState extends State<GameOverPopup>
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
 
+  static const List<String> gameOverMessages = [
+    "YOU'RE FIRED!",
+    "TOTAL\nDISASTER!",
+    "SAD!",
+    "FAKE\nMOVES!",
+    "LOW ENERGY\nGAME!",
+    "NOT A\nWINNER!",
+    "TREMENDOUS\nFAILURE!",
+    "BIGLY\nDISAPPOINTED!",
+    "NO DEAL!",
+    "GAME OVER,\nFOLKS!",
+  ];
+
+  late final String selectedMessage;
+
   @override
   void initState() {
     super.initState();
+    final random = Random();
+    selectedMessage = gameOverMessages[random.nextInt(gameOverMessages.length)];
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -88,12 +107,11 @@ class _GameOverPopupState extends State<GameOverPopup>
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    const PatrioticTitle(
-                      text: "YOU'RE FIRED!",
-                      fontSize: 32,
-                      isSecondary: false,
+                    PatrioticTitle(
+                      text: selectedMessage,
+                      fontSize: 20,
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Container(
                       width: 200,
                       height: 200,
@@ -102,11 +120,10 @@ class _GameOverPopupState extends State<GameOverPopup>
                         fit: BoxFit.contain,
                       ),
                     ),
-                    const SizedBox(height: 12),
-                    const PatrioticTitle(
-                      text: "FINAL SCORE",
-                      fontSize: 24,
-                      isSecondary: true,
+                    const SizedBox(height: 8),
+                    PatrioticTitle(
+                      text: 'FINAL SCORE',
+                      fontSize: 20,
                     ),
                     const SizedBox(height: 5),
                     Text(

@@ -63,6 +63,8 @@ class _PatrioticTitleState extends State<PatrioticTitle> with SingleTickerProvid
               Text(
                 widget.text,
                 textAlign: TextAlign.center,
+                softWrap: true,
+                overflow: TextOverflow.visible,
                 style: TextStyle(
                   fontSize: widget.fontSize,
                   fontFamily: 'RubikBubbles',
@@ -77,6 +79,8 @@ class _PatrioticTitleState extends State<PatrioticTitle> with SingleTickerProvid
               Text(
                 widget.text,
                 textAlign: TextAlign.center,
+                softWrap: true,
+                overflow: TextOverflow.visible,
                 style: TextStyle(
                   fontSize: widget.fontSize,
                   fontFamily: 'RubikBubbles',

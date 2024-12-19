@@ -1,4 +1,6 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'widgets/patriotic_title.dart';
 
 class PardonPopup extends StatefulWidget {
   const PardonPopup({super.key});
@@ -8,28 +10,64 @@ class PardonPopup extends StatefulWidget {
 }
 
 class _PardonPopupState extends State<PardonPopup> with SingleTickerProviderStateMixin {
-  late AnimationController _scaleController;
+  late AnimationController _controller;
   late Animation<double> _scaleAnimation;
+  late Animation<double> _opacityAnimation;
+
+  static const Map<String, String> bidenContent = {
+    'https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExa2Jjc2U4d2p6azNjcDUwMThvMHJtc3JkNmMxa3JjN2hvanI2enNsNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/4F4lRI7NDcYDTT9aZI/giphy.gif': 
+        "YOU GOT IT, JACK!",  // Thumbs up
+    'https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExejVtOWpjcGdwc3p1bWFvZDkzcDNvZmRrcjRoemNpbDNhZHoxejRuMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Y1qcnIBrILmQ25p7vl/giphy.gif': 
+        "HERE'S THE DEAL:\nYOU'RE PARDONED!",  // Pointing and smiling
+    'https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2hpMjA4OHg0Mm95d3o2cDRjNWZkbHBtMWVuYmV3YWRjdHduaGdseSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Kwi0Iu9MxxOgg/giphy.gif': 
+        "NO MALARKEY,\nTHAT WAS GOOD!",  // Laughing
+    'https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExZTlzM3NrZHhzdno4cXY1ZWxza2RoOWFlaXZkMDQ3Zm15ZXBubDgwNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/rX6REfmpQKqkGazkzm/giphy.gif': 
+        "AND THAT'S\nNO JOKE, FOLKS!",  // Not a Joke
+  };
+
+  late final String selectedGif;
+  late final String selectedMessage;
 
   @override
   void initState() {
     super.initState();
-    _scaleController = AnimationController(
-      duration: const Duration(milliseconds: 300),
+    final random = Random();
+    final entries = bidenContent.entries.toList();
+    final selectedEntry = entries[random.nextInt(entries.length)];
+    selectedGif = selectedEntry.key;
+    selectedMessage = selectedEntry.value;
+
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 500),
       vsync: this,
     );
 
-    _scaleAnimation = CurvedAnimation(
-      parent: _scaleController,
-      curve: Curves.easeOutBack,
+    _scaleAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.elasticOut,
+      ),
     );
 
-    _scaleController.forward();
+    _opacityAnimation = Tween<double>(
+      begin: 0.0,
+      end: 1.0,
+    ).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: Curves.easeIn,
+      ),
+    );
 
-    // Auto dismiss after 2 seconds
+    _controller.forward();
+
+    // Auto-dismiss after 5.8 seconds if not tapped
     Future.delayed(const Duration(milliseconds: 5800), () {
       if (mounted) {
-        _scaleController.reverse().then((_) {
+        _controller.reverse().then((_) {
           Navigator.of(context).pop();
         });
       }
@@ -38,7 +76,7 @@ class _PardonPopupState extends State<PardonPopup> with SingleTickerProviderStat
 
   @override
   void dispose() {
-    _scaleController.dispose();
+    _controller.dispose();
     super.dispose();
   }
 
@@ -48,55 +86,56 @@ class _PardonPopupState extends State<PardonPopup> with SingleTickerProviderStat
       backgroundColor: Colors.transparent,
       child: GestureDetector(
         onTap: () {
-          _scaleController.reverse().then((_) {
+          _controller.reverse().then((_) {
             Navigator.of(context).pop();
           });
         },
         child: ScaleTransition(
           scale: _scaleAnimation,
-          child: Container(
-            width: 300,
-            padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.2),
-                  blurRadius: 10,
-                  spreadRadius: 2,
-                ),
-              ],
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Thanks Jack,\nyou\'re pardoned!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(
-                    color: Colors.blue,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                    shadows: [
-                      Shadow(
-                        blurRadius: 3.0,
-                        color: Colors.black.withOpacity(0.3),
-                        offset: const Offset(2, 2),
-                      ),
-                    ],
+          child: FadeTransition(
+            opacity: _opacityAnimation,
+            child: Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Image.network(
+                    selectedGif,
+                    height: 200,
+                    width: 200,
+                    fit: BoxFit.cover,
+                    loadingBuilder: (context, child, loadingProgress) {
+                      if (loadingProgress == null) return child;
+                      return const SizedBox(
+                        height: 200,
+                        width: 200,
+                        child: Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      );
+                    },
+                    errorBuilder: (context, error, stackTrace) {
+                      return const SizedBox(
+                        height: 200,
+                        width: 200,
+                        child: Center(
+                          child: Icon(Icons.error),
+                        ),
+                      );
+                    },
                   ),
-                ),
-                const SizedBox(height: 20),
-                Container(
-                  width: 150,
-                  height: 150,
-                  child: Image.asset(
-                    'assets/biden_nobg.gif',
-                    fit: BoxFit.contain,
+                  const SizedBox(height: 16),
+                  PatrioticTitle(
+                    text: selectedMessage,
+                    fontSize: 32,
+                    isSecondary: true,
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),
