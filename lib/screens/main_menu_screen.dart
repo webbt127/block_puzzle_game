@@ -1,6 +1,7 @@
 import 'dart:io' show Platform;
 import 'package:block_puzzle_game/providers/feedback_providers.dart';
 import 'package:block_puzzle_game/screens/game_screen.dart';
+import 'package:block_puzzle_game/widgets/patriotic_title.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -8,7 +9,6 @@ import 'package:url_launcher/url_launcher.dart';
 import 'settings_screen.dart';
 import '../services/games_services.dart';
 import 'store_screen.dart';
-import '../widgets/waving_text.dart';
 
 class MainMenuScreen extends ConsumerStatefulWidget {
   const MainMenuScreen({super.key});
@@ -94,73 +94,67 @@ class _MainMenuScreenState extends ConsumerState<MainMenuScreen> {
             ),
             Center(
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 children: [
-                  const Spacer(),
                   // GIF
                   Image.asset(
                     'assets/bald_eagle_drinking.gif',
                     width: 300,
                     height: 300,
                   ),
-                  const SizedBox(height: 20),
-                  WavingText(
-                    text: 'BLOCK BLAST'.toUpperCase(),
-                    fontSize: 40,
-                    color: Colors.red[700]!,
-                    shadowColor: Colors.blue[900],
+                  // Title
+                  const Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      PatrioticTitle(
+                        text: 'BLOCK BLAST',
+                        fontSize: 40,
+                        isSecondary: false,
+                      ),
+                      SizedBox(height: 5),
+                      PatrioticTitle(
+                        text: 'STARS & STRIPES',
+                        fontSize: 30,
+                        isSecondary: true,
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 10),
-                  WavingText(
-                    text: 'STARS & STRIPES'.toUpperCase(),
-                    fontSize: 30,
-                    color: Colors.blue[900]!,
-                    shadowColor: Colors.red[700],
-                  ),
-                  const Spacer(),
-                  // Buttons
+                  // Play Button
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 40),
-                    child: Column(
-                      children: [
-                        // Play Button (Larger)
-                        SizedBox(
-                          width: 200,
-                          height: 60,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              await feedbackManager.playFeedback();
-                              if (!context.mounted) return;
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (context) => const GameScreen(),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: colorScheme.primary,
-                              foregroundColor: colorScheme.onPrimary,
-                              elevation: 4,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 2),
+                    child: SizedBox(
+                      width: 200,
+                      height: 60,
+                      child: ElevatedButton(
+                        onPressed: () async {
+                          await feedbackManager.playFeedback();
+                          if (!context.mounted) return;
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const GameScreen(),
                             ),
-                            child: Text(
-                              'play'.tr(),
-                              style: const TextStyle(
-                                fontSize: 22,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
+                          );
+                        },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorScheme.primary,
+                          foregroundColor: colorScheme.onPrimary,
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 2),
+                        ),
+                        child: Text(
+                          'play'.tr(),
+                          style: const TextStyle(
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                        const SizedBox(height: 16),
-                      ],
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 16),
                 ],
               ),
             ),

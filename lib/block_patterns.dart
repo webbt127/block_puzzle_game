@@ -138,11 +138,11 @@ class BlockPatternWidget extends StatelessWidget {
   final double opacity;
 
   const BlockPatternWidget({
-    Key? key,
+    super.key,
     required this.pattern,
     required this.cellSize,
     this.opacity = 1.0,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

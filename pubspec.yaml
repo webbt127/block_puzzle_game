@@ -30,6 +30,7 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  animator: ^3.3.0
   video_player: ^2.8.1
   games_services: ^4.0.3
   # The following adds the Cupertino Icons font to your application.
@@ -44,6 +45,7 @@ dependencies:
   easy_localization: ^3.0.7
   google_mobile_ads: ^5.2.0
   envied: ^1.0.0
+  palette_generator: ^0.3.3
 
 dev_dependencies:
   flutter_test:

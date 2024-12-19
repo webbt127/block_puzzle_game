@@ -229,91 +229,99 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        leading: PopupMenuButton<String>(
+          icon: const Icon(Icons.menu, color: Colors.blue, size: 32),
+          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
+            const PopupMenuItem<String>(
+              value: 'home',
+              child: ListTile(
+                leading: const Icon(Icons.home, color: Colors.blue),
+                title: const Text('Home'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+            const PopupMenuItem<String>(
+              value: 'leaderboard',
+              child: ListTile(
+                leading: const Icon(Icons.leaderboard_outlined, color: Colors.blue),
+                title: const Text('Leaderboard'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+            const PopupMenuItem<String>(
+              value: 'store',
+              child: ListTile(
+                leading: const Icon(Icons.shopping_bag_outlined, color: Colors.blue),
+                title: const Text('Store'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+            const PopupMenuItem<String>(
+              value: 'rate',
+              child: ListTile(
+                leading: const Icon(Icons.star_border, color: Colors.blue),
+                title: const Text('Rate App'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+            const PopupMenuItem<String>(
+              value: 'settings',
+              child: ListTile(
+                leading: const Icon(Icons.settings, color: Colors.blue),
+                title: const Text('Settings'),
+                contentPadding: EdgeInsets.zero,
+              ),
+            ),
+          ],
+          onSelected: (String value) async {
+            // Play feedback for all menu interactions
+            await ref.read(feedbackManagerProvider).playFeedback();
+            if (!context.mounted) return;
+
+            switch (value) {
+              case 'home':
+                Navigator.of(context).pop();
+                break;
+              case 'leaderboard':
+                GameServicesService.showLeaderboard();
+                break;
+              case 'store':
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const StoreScreen(),
+                  ),
+                );
+                break;
+              case 'rate':
+                await _rateApp();
+                break;
+              case 'settings':
+                Navigator.of(context).pushNamed('/settings');
+                break;
+            }
+          },
+        ),
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0),
+            child: Text(
+              'Score: $score',
+              style: const TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.blue,
+              ),
+            ),
+          ),
+        ],
+      ),
       body: SafeArea(
         child: Column(
           children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.home,
-                          color: Colors.blue,
-                          size: 32,
-                        ),
-                        onPressed: () async {
-                          await ref.read(feedbackManagerProvider).playFeedback();
-                          if (!context.mounted) return;
-                          Navigator.of(context).pop();
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.leaderboard_outlined,
-                          color: Colors.blue,
-                          size: 32,
-                        ),
-                        onPressed: () async {
-                          await ref.read(feedbackManagerProvider).playFeedback();
-                          GameServicesService.showLeaderboard();
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.shopping_bag_outlined,
-                          color: Colors.blue,
-                          size: 32,
-                        ),
-                        onPressed: () async {
-                          await ref.read(feedbackManagerProvider).playFeedback();
-                          if (!context.mounted) return;
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const StoreScreen(),
-                            ),
-                          );
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.star_border,
-                          color: Colors.blue,
-                          size: 32,
-                        ),
-                        onPressed: () async {
-                          await ref.read(feedbackManagerProvider).playFeedback();
-                          await _rateApp();
-                        },
-                      ),
-                      IconButton(
-                        icon: const Icon(
-                          Icons.settings,
-                          color: Colors.blue,
-                          size: 32,
-                        ),
-                        onPressed: () async {
-                          await ref.read(feedbackManagerProvider).playFeedback();
-                          if (!context.mounted) return;
-                          Navigator.of(context).pushNamed('/settings');
-                        },
-                      ),
-                    ],
-                  ),
-                  Text(
-                    'Score: $score',
-                    style: const TextStyle(
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                ],
-              ),
-            ),
             Expanded(
               child: Center(
                 child: Container(
@@ -488,7 +496,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                         width: itemWidth,
                         child: Center(
                           child: SizedBox(
-                            width: pattern.width * dragCellSize,
+                            width: pattern.width * dragCellSize * 1.2,
                             height: pattern.height * dragCellSize * 1.2,
                             child: Draggable<BlockPattern>(
                               data: pattern,
@@ -504,14 +512,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                               },
                               feedback: Transform.scale(
                                 scale: 1.3, // Slightly larger when dragging
-                                child: PatrioticBlockPatternWidget(
+                                child: PatrioticBlockPattern(
                                   pattern: pattern,
                                   cellSize: dragCellSize,
                                 ),
                               ),
                               childWhenDragging: Opacity(
                                 opacity: 0.3,
-                                child: PatrioticBlockPatternWidget(
+                                child: PatrioticBlockPattern(
                                   pattern: pattern,
                                   cellSize: smallCellSize,
                                 ),
@@ -531,7 +539,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                   ),
                                 ),
                                 child: Center(
-                                  child: PatrioticBlockPatternWidget(
+                                  child: PatrioticBlockPattern(
                                     pattern: pattern,
                                     cellSize: smallCellSize,
                                   ),

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'widgets/patriotic_title.dart';
 
 class GameOverPopup extends StatefulWidget {
   final int finalScore;
@@ -85,63 +86,62 @@ class _GameOverPopupState extends State<GameOverPopup>
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    Text(
-                      "YOU'RE FIRED",
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        fontFamily: 'AlfaSlabOne',
-                        fontSize: 32,
-                        color: Colors.red[700],
-                        shadows: [
-                          Shadow(
-                            color: Colors.blue[900]!,
-                            blurRadius: 4,
-                            offset: const Offset(2, 2),
-                          ),
-                        ],
-                      ),
+                    const PatrioticTitle(
+                      text: "YOU'RE FIRED!",
+                      fontSize: 32,
+                      isSecondary: false,
                     ),
                     const SizedBox(height: 12),
                     Container(
-                      width: 250,
-                      height: 250,
+                      width: 200,
+                      height: 200,
                       child: Image.asset(
                         'assets/trump_nobg.gif',
                         fit: BoxFit.contain,
                       ),
                     ),
                     const SizedBox(height: 12),
+                    const PatrioticTitle(
+                      text: "FINAL SCORE",
+                      fontSize: 24,
+                      isSecondary: true,
+                    ),
+                    const SizedBox(height: 5),
                     Text(
-                      'Final Score: ${widget.finalScore}',
+                      "${widget.finalScore}",
+                      textAlign: TextAlign.center,
                       style: TextStyle(
-                        fontFamily: 'AlfaSlabOne',
-                        fontSize: 18,
+                        fontSize: 36,
+                        fontWeight: FontWeight.bold,
                         color: Colors.blue[900],
-                        shadows: [
-                          Shadow(
-                            color: Colors.red[700]!,
-                            blurRadius: 4,
-                            offset: const Offset(2, 2),
-                          ),
-                        ],
                       ),
                     ),
                     const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: widget.onRestart,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 30,
-                          vertical: 15,
+                    SizedBox(
+                      width: 200,
+                      height: 60,
+                      child: ElevatedButton(
+                        onPressed: widget.onRestart,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.blue[900],
+                          foregroundColor: Colors.white,
+                          elevation: 4,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(30),
+                          ),
+                          padding: const EdgeInsets.symmetric(vertical: 2),
                         ),
-                      ),
-                      child: const Text(
-                        'Play Again',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.white,
+                        child: const Center(
+                          child: Text(
+                            'PLAY AGAIN',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
                         ),
                       ),
                     ),
