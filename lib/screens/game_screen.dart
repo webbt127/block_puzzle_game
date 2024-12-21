@@ -139,17 +139,20 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _showGameOverPopup() {
-    // Submit score to Game Center
-    GameServicesService.submitScore(score);
-    
     showDialog(
       context: context,
-      barrierDismissible: false,
+      barrierDismissible: kDebugMode, // Allow dismissing in debug mode
       builder: (BuildContext context) {
         return GameOverPopup(
           finalScore: score,
+          debugMode: kDebugMode, // Pass debug mode to popup
           onRestart: () {
+            // Play feedback
+            final feedbackManager = ref.read(feedbackManagerProvider);
+            //feedbackManager.playButtonPress();
+            
             setState(() {
+              // Reset game state
               gameBoard = List.generate(
                 rows,
                 (i) => List.generate(columns, (j) => false),
@@ -158,11 +161,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               consecutiveClears = 0;
               _generateNewPatterns();
             });
-            
-            // Show interstitial ad on replay
-            if (!_hideAds) {
-              AdService.showInterstitialAd();
-            }
             Navigator.of(context).pop();
           },
         );
@@ -210,10 +208,33 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         );
       }
 
+      // Immediately clear the lines in the game state
+      for (final row in rowsToClear) {
+        for (int j = 0; j < columns; j++) {
+          gameBoard[row][j] = false;
+        }
+      }
+      for (final col in columnsToClear) {
+        for (int i = 0; i < rows; i++) {
+          gameBoard[i][col] = false;
+        }
+      }
+
+      // Start the animation separately
       setState(() {
         isAnimatingClear = true;
         rowsBeingCleared = rowsToClear;
         columnsBeingCleared = columnsToClear;
+      });
+
+      // Schedule animation cleanup
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (!mounted) return;
+        setState(() {
+          isAnimatingClear = false;
+          rowsBeingCleared = [];
+          columnsBeingCleared = [];
+        });
       });
     } else {
       // Reset consecutive clears if no lines were cleared
@@ -221,12 +242,33 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     }
   }
 
-  void _onClearAnimationComplete() {
-    setState(() {
-      isAnimatingClear = false;
-      rowsBeingCleared = [];
-      columnsBeingCleared = [];
-    });
+  Future<void> _tryPlacePattern(BlockPattern pattern, int row, int col) async {
+    if (gridSystem.canPlacePattern(pattern, GridPosition(row, col), gameBoard)) {
+      setState(() {
+        gridSystem.placeBlockPattern(pattern, GridPosition(row, col), gameBoard);
+        score += pattern.shape.expand((row) => row).where((cell) => cell).length * 10;
+        _checkAndClearLines();
+        
+        availablePatterns.remove(pattern);
+        if (availablePatterns.isEmpty) {
+          _generateNewPatterns();
+        }
+      });
+
+      // Start the delayed game over check
+      _delayedGameOverCheck();
+    }
+  }
+
+  Future<void> _delayedGameOverCheck() async {
+    // Wait for 5 seconds
+    await Future.delayed(const Duration(seconds: 5));
+    if (!mounted) return;
+
+    // Check for game over after delay
+    if (_isGameOver()) {
+      _showGameOverPopup();
+    }
   }
 
   void _updatePotentialClears() {
@@ -325,25 +367,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     _updatePotentialClears();
   }
 
-  void _tryPlacePattern(BlockPattern pattern, int row, int col) {
-    if (gridSystem.canPlacePattern(pattern, GridPosition(row, col), gameBoard)) {
-      setState(() {
-        gridSystem.placeBlockPattern(pattern, GridPosition(row, col), gameBoard);
-        score += pattern.shape.expand((row) => row).where((cell) => cell).length * 10;  // 10 points per block cell
-        _checkAndClearLines();
-        
-        // Remove used pattern and check for game over
-        availablePatterns.remove(pattern);
-        if (availablePatterns.isEmpty) {
-          _generateNewPatterns();
-        }
-        
-        // Check for game over after pattern placement
-        if (_isGameOver()) {
-          _showGameOverPopup();
-        }
-      });
-    }
+  void _onClearAnimationComplete() {
+    // This is now handled by the Future.delayed in _checkAndClearLines
   }
 
   void _onBlockClear(int row, int col) {
