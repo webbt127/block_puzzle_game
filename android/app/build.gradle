@@ -5,6 +5,11 @@ plugins {
     id "dev.flutter.flutter-gradle-plugin"
 }
 
+dependencies {
+    implementation 'com.google.android.gms:play-services-games-v2:17.0.0'
+    implementation 'com.google.android.gms:play-services-auth:20.7.0'
+}
+
 def localProperties = new Properties()
 def localPropertiesFile = rootProject.file("local.properties")
 if (localPropertiesFile.exists()) {
@@ -26,7 +31,7 @@ if (flutterVersionName == null) {
 android {
     namespace = "com.apparchitects.blockpuzzle"
     compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    ndkVersion = "27.0.12077973"
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
