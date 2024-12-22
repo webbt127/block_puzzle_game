@@ -138,6 +138,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _showGameOverPopup() {
+    // Submit score to leaderboard
+    GameServicesService.submitScore(score);
+    
     showDialog(
       context: context,
       barrierDismissible: kDebugMode, // Allow dismissing in debug mode

@@ -1,4 +1,5 @@
-import 'dart:math';
+import 'dart:math' as math;
+import 'package:block_puzzle_game/services/games_services.dart';
 import 'package:flutter/material.dart';
 import 'widgets/patriotic_title.dart';
 
@@ -11,7 +12,7 @@ class GameOverPopup extends StatefulWidget {
     super.key,
     required this.finalScore,
     required this.onRestart,
-    this.debugMode = false,
+    required this.debugMode,
   });
 
   @override
@@ -23,6 +24,7 @@ class _GameOverPopupState extends State<GameOverPopup>
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
+  late int _currentScore;
 
   static const List<String> gameOverMessages = [
     "YOU'RE FIRED!",
@@ -42,7 +44,8 @@ class _GameOverPopupState extends State<GameOverPopup>
   @override
   void initState() {
     super.initState();
-    final random = Random();
+    _currentScore = widget.finalScore;
+    final random = math.Random();
     selectedMessage = gameOverMessages[random.nextInt(gameOverMessages.length)];
 
     _controller = AnimationController(
@@ -140,7 +143,7 @@ class _GameOverPopupState extends State<GameOverPopup>
                         ),
                         const SizedBox(height: 5),
                         Text(
-                          "${widget.finalScore}",
+                          '$_currentScore',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             fontSize: 36,
@@ -149,6 +152,32 @@ class _GameOverPopupState extends State<GameOverPopup>
                           ),
                         ),
                         const SizedBox(height: 20),
+                        if (widget.debugMode) ...[
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              IconButton(
+                                icon: const Icon(Icons.remove, color: Colors.blue),
+                                onPressed: () {
+                                  setState(() {
+                                    _currentScore = math.max(0, _currentScore - 100);
+                                  });
+                                  GameServicesService.submitScore(_currentScore);
+                                },
+                              ),
+                              IconButton(
+                                icon: const Icon(Icons.add, color: Colors.blue),
+                                onPressed: () {
+                                  setState(() {
+                                    _currentScore += 100;
+                                  });
+                                  GameServicesService.submitScore(_currentScore);
+                                },
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                        ],
                         SizedBox(
                           width: 200,
                           height: 60,
