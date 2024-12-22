@@ -13,7 +13,7 @@ import '../game_over_popup.dart';
 import '../widgets/patriotic_block_pattern.dart';
 import '../widgets/patriotic_grid_overlay.dart';
 import '../widgets/potential_clear_overlay.dart';
-import '../widgets/clear_animation_overlay.dart';
+import '../widgets/block_clear_effect.dart';
 import '../pardon_popup.dart';
 import '../services/ad_service.dart';
 import '../services/games_services.dart';
@@ -47,9 +47,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   bool _hideAds = false;  // Track hide ads status
   List<int> potentialRowClears = [];
   List<int> potentialColumnClears = [];
-  bool isAnimatingClear = false;
-  List<int> rowsBeingCleared = [];
-  List<int> columnsBeingCleared = [];
+
+  final _gridKey = GlobalKey();
 
   @override
   void initState() {
@@ -197,6 +196,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       // Increment consecutive clears if lines were cleared
       consecutiveClears++;
       
+      // Add points for the clear
+      score += ((rowsToClear.length + columnsToClear.length) * 100) * consecutiveClears;
+
       // Show pardon popup for multiple lines or consecutive clears
       if (rowsToClear.length + columnsToClear.length >= 2 || consecutiveClears >= 2) {
         showDialog(
@@ -208,7 +210,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         );
       }
 
-      // Immediately clear the lines in the game state
+      // Clear the lines in the game state
       for (final row in rowsToClear) {
         for (int j = 0; j < columns; j++) {
           gameBoard[row][j] = false;
@@ -220,26 +222,59 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         }
       }
 
-      // Start the animation separately
-      setState(() {
-        isAnimatingClear = true;
-        rowsBeingCleared = rowsToClear;
-        columnsBeingCleared = columnsToClear;
+      // Show clear effect with current cell size
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        final RenderBox? gridBox = _gridKey.currentContext?.findRenderObject() as RenderBox?;
+        if (gridBox != null) {
+          final size = gridBox.size;
+          final cellSize = math.min(size.width, size.height) / rows;
+          _showClearEffect(rowsToClear, columnsToClear, cellSize);
+        }
       });
 
-      // Schedule animation cleanup
-      Future.delayed(const Duration(milliseconds: 500), () {
-        if (!mounted) return;
-        setState(() {
-          isAnimatingClear = false;
-          rowsBeingCleared = [];
-          columnsBeingCleared = [];
-        });
-      });
+      setState(() {}); // Trigger rebuild to show cleared blocks
     } else {
       // Reset consecutive clears if no lines were cleared
       consecutiveClears = 0;
     }
+  }
+
+  void _showClearEffect(List<int> rowsToClear, List<int> columnsToClear, double cellSize) {
+    if (!mounted) return;
+    
+    // Get the grid's global position using the key
+    final RenderBox? gridBox = _gridKey.currentContext?.findRenderObject() as RenderBox?;
+    if (gridBox == null) return;
+    
+    // Use GridSystem to get exact screen position of first cell (0,0)
+    final firstCellPosition = gridSystem.getScreenPosition(GridPosition(0, 0));
+    
+    // Convert to global coordinates and adjust vertical position
+    final globalPosition = gridBox.localToGlobal(firstCellPosition);
+    final adjustedPosition = Offset(
+      globalPosition.dx,
+      globalPosition.dy - (cellSize * 1.25), // Move up by 1.25 cells
+    );
+    
+    // Show the effect in an overlay to avoid affecting game layout
+    showDialog(
+      context: context,
+      barrierColor: Colors.transparent,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Stack(
+          children: [
+            BlockClearEffect(
+              clearedRows: rowsToClear,
+              clearedColumns: columnsToClear,
+              cellSize: cellSize,
+              gridPosition: adjustedPosition,
+              gridPadding: EdgeInsets.zero,
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _tryPlacePattern(BlockPattern pattern, int row, int col) async {
@@ -365,24 +400,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       previewPattern = null;
     });
     _updatePotentialClears();
-  }
-
-  void _onClearAnimationComplete() {
-    // This is now handled by the Future.delayed in _checkAndClearLines
-  }
-
-  void _onBlockClear(int row, int col) {
-    setState(() {
-      gameBoard[row][col] = false;
-      
-      // Add points for the cleared block
-      if (rowsBeingCleared.contains(row)) {
-        score += 10; // Points for row clear
-      }
-      if (columnsBeingCleared.contains(col) && !rowsBeingCleared.contains(row)) {
-        score += 10; // Points for column clear (if not already counted in row)
-      }
-    });
   }
 
   @override
@@ -550,23 +567,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                   ),
                                 ),
                               ),
-                              if (isAnimatingClear)
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: math.max(0, horizontalPadding),
-                                    vertical: math.max(0, verticalPadding),
-                                  ),
-                                  child: AspectRatio(
-                                    aspectRatio: 1.0,
-                                    child: ClearAnimationOverlay(
-                                      rowsToClear: rowsBeingCleared,
-                                      columnsToClear: columnsBeingCleared,
-                                      cellSize: cellSize,
-                                      onAnimationComplete: _onClearAnimationComplete,
-                                      onBlockClear: _onBlockClear,
-                                    ),
-                                  ),
-                                ),
                               // Grid and drag target
                               Padding(
                                 padding: EdgeInsets.symmetric(
@@ -640,15 +640,36 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                       });
                                     },
                                     builder: (context, candidateData, rejectedData) {
-                                      return GridOverlay(
-                                        grid: gridSystem,
-                                        gameBoard: gameBoard,
-                                        gridLineColor: Theme.of(context).brightness == Brightness.dark 
-                                          ? Colors.grey[700]! 
-                                          : const Color(0xFFE0E0E0),
-                                        highlightedPosition: previewPosition,
-                                        highlightedPattern: previewPattern,
-                                        isDarkMode: Theme.of(context).brightness == Brightness.dark,
+                                      return Stack(
+                                        children: [
+                                          CustomPaint(
+                                            key: _gridKey,
+                                            size: Size(gridSize, gridSize),
+                                            painter: GridPainter(
+                                              grid: gridSystem,
+                                              gameBoard: gameBoard,
+                                              gridLineColor: Theme.of(context).brightness == Brightness.dark 
+                                                ? Colors.grey[700]! 
+                                                : const Color(0xFFE0E0E0),
+                                              highlightedPosition: previewPosition,
+                                              highlightedPattern: previewPattern,
+                                              onImageLoad: () {
+                                                if (mounted) setState(() {});
+                                              },
+                                              isDarkMode: Theme.of(context).brightness == Brightness.dark,
+                                            ),
+                                          ),
+                                          GridOverlay(
+                                            grid: gridSystem,
+                                            gameBoard: gameBoard,
+                                            gridLineColor: Theme.of(context).brightness == Brightness.dark 
+                                              ? Colors.grey[700]! 
+                                              : const Color(0xFFE0E0E0),
+                                            highlightedPosition: previewPosition,
+                                            highlightedPattern: previewPattern,
+                                            isDarkMode: Theme.of(context).brightness == Brightness.dark,
+                                          ),
+                                        ],
                                       );
                                     },
                                   ),
