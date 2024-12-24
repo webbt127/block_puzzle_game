@@ -49,20 +49,12 @@ class _BlockClearEffectState extends State<BlockClearEffect> with SingleTickerPr
     _opacityAnimation = Tween<double>(
       begin: 1.0,
       end: 0.0,
-    ).animate(
-      CurvedAnimation(
-        parent: _controller,
-        curve: const Interval(0.3, 1.0, curve: Curves.easeOut),
-      ),
-    );
+    ).animate(CurvedAnimation(
+      parent: _controller,
+      curve: const Interval(0.5, 1.0),
+    ));
 
-    // Start the animation automatically
-    _controller.forward().then((_) {
-      if (mounted) {
-        // Remove the effect widget when animation is done
-        Navigator.of(context).pop();
-      }
-    });
+    _controller.forward();
   }
 
   @override
@@ -73,34 +65,23 @@ class _BlockClearEffectState extends State<BlockClearEffect> with SingleTickerPr
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      type: MaterialType.transparency,
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Positioned(
-            left: widget.gridPosition.dx,
-            top: widget.gridPosition.dy,
-            width: widget.cellSize * 8,
-            height: widget.cellSize * 8,
-            child: AnimatedBuilder(
-              animation: _controller,
-              builder: (context, child) {
-                return CustomPaint(
-                  size: Size(widget.cellSize * 8, widget.cellSize * 8),
-                  painter: _BlockClearEffectPainter(
-                    clearedRows: widget.clearedRows,
-                    clearedColumns: widget.clearedColumns,
-                    cellSize: widget.cellSize,
-                    scale: _scaleAnimation.value,
-                    opacity: _opacityAnimation.value,
-                  ),
-                );
-              },
-            ),
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return CustomPaint(
+          painter: _BlockClearEffectPainter(
+            clearedRows: widget.clearedRows,
+            clearedColumns: widget.clearedColumns,
+            cellSize: widget.cellSize,
+            scale: _scaleAnimation.value,
+            opacity: _opacityAnimation.value,
           ),
-        ],
-      ),
+          size: Size(
+            widget.cellSize * 8,
+            widget.cellSize * 8,
+          ),
+        );
+      },
     );
   }
 }

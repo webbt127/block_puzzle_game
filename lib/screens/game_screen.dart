@@ -47,6 +47,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   bool _hideAds = false;  // Track hide ads status
   List<int> potentialRowClears = [];
   List<int> potentialColumnClears = [];
+  BlockClearEffect? _activeClearEffect;
 
   final _gridKey = GlobalKey();
 
@@ -200,10 +201,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       consecutiveClears++;
       
       // Add points for the clear
-      score += ((rowsToClear.length + columnsToClear.length) * 100) * consecutiveClears;
+      score += ((rowsToClear.length + columnsToClear.length) * (rowsToClear.length + columnsToClear.length)* 100) * consecutiveClears;
 
       // Show pardon popup for multiple lines or consecutive clears
-      if (rowsToClear.length + columnsToClear.length >= 2 || consecutiveClears >= 2) {
+      if (rowsToClear.length + columnsToClear.length >= 2 || consecutiveClears >= 3) {
         showDialog(
           context: context,
           barrierDismissible: false,
@@ -245,39 +246,29 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void _showClearEffect(List<int> rowsToClear, List<int> columnsToClear, double cellSize) {
     if (!mounted) return;
     
-    // Get the grid's global position using the key
+    // Get the grid's position using the key
     final RenderBox? gridBox = _gridKey.currentContext?.findRenderObject() as RenderBox?;
     if (gridBox == null) return;
-    
-    // Use GridSystem to get exact screen position of first cell (0,0)
-    final firstCellPosition = gridSystem.getScreenPosition(GridPosition(0, 0));
-    
-    // Convert to global coordinates and adjust vertical position
-    final globalPosition = gridBox.localToGlobal(firstCellPosition);
-    final adjustedPosition = Offset(
-      globalPosition.dx,
-      globalPosition.dy - (cellSize * 1.25), // Move up by 1.25 cells
-    );
-    
-    // Show the effect in an overlay to avoid affecting game layout
-    showDialog(
-      context: context,
-      barrierColor: Colors.transparent,
-      barrierDismissible: false,
-      builder: (BuildContext context) {
-        return Stack(
-          children: [
-            BlockClearEffect(
-              clearedRows: rowsToClear,
-              clearedColumns: columnsToClear,
-              cellSize: cellSize,
-              gridPosition: adjustedPosition,
-              gridPadding: EdgeInsets.zero,
-            ),
-          ],
-        );
-      },
-    );
+
+    setState(() {
+      // The effect will be added to the widget tree in build()
+      _activeClearEffect = BlockClearEffect(
+        clearedRows: rowsToClear,
+        clearedColumns: columnsToClear,
+        cellSize: cellSize,
+        gridPosition: Offset.zero, // No offset needed as it's positioned in the Stack
+        gridPadding: EdgeInsets.zero,
+      );
+      
+      // Remove the effect after animation
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          setState(() {
+            _activeClearEffect = null;
+          });
+        }
+      });
+    });
   }
 
   Future<void> _tryPlacePattern(BlockPattern pattern, int row, int col) async {
@@ -672,6 +663,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                             highlightedPattern: previewPattern,
                                             isDarkMode: Theme.of(context).brightness == Brightness.dark,
                                           ),
+                                          if (_activeClearEffect != null)
+                                            _activeClearEffect!
                                         ],
                                       );
                                     },
