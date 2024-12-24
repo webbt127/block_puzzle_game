@@ -32,8 +32,9 @@ class GameServicesService {
         androidLeaderboardID: GameServicesConstants.androidLeaderboardID,
         iOSLeaderboardID: GameServicesConstants.iosLeaderboardID,
       );
-    } catch (e) {
+    } catch (e, stackTrace) {
       print('Error showing leaderboard: $e');
+      print('Stack trace: $stackTrace');
     }
   }
 
