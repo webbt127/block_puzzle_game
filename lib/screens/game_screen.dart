@@ -370,7 +370,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     final row = (localPosition.dy / gridSystem.cellSize).floor();
     final col = (localPosition.dx / gridSystem.cellSize).floor();
     
-    if (row >= 0 && row < rows && col >= 0 && col < columns) {
+    // Adjust the bounds check to account for the pattern height
+    if (row >= -pattern.height && row < rows && col >= 0 && col < columns) {
       setState(() {
         previewPosition = GridPosition(row, col);
         previewPattern = pattern;
@@ -563,83 +564,42 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                               ),
                               // Grid and drag target
                               Padding(
-                                padding: EdgeInsets.symmetric(
-                                  horizontal: math.max(0, horizontalPadding),
-                                  vertical: math.max(0, verticalPadding),
+                                padding: EdgeInsets.only(
+                                  left: math.max(0, horizontalPadding),
+                                  right: math.max(0, horizontalPadding),
+                                  top: math.max(0, verticalPadding),
+                                  // Remove bottom padding to extend drag area
                                 ),
-                                child: AspectRatio(
-                                  aspectRatio: 1.0,
-                                  child: DragTarget<BlockPattern>(
-                                    onWillAccept: (data) => true,
-                                    onAcceptWithDetails: (details) async {
-                                      if (previewPosition != null && previewPattern != null) {
-                                        final isValid = gridSystem.canPlacePattern(
-                                          previewPattern!,
-                                          previewPosition!,
-                                          gameBoard,
-                                        );
-                                        if (isValid) {
-                                          await ref.read(feedbackManagerProvider).playFeedback();
-                                  
-                                          // Calculate score before clearing the preview
-                                          final blockScore = previewPattern!.shape
-                                              .expand((row) => row)
-                                              .where((cell) => cell)
-                                              .length * 10;  // 10 points per block cell
-                                  
-                                          setState(() {
-                                            gridSystem.placeBlockPattern(
-                                              previewPattern!,
-                                              previewPosition!,
-                                              gameBoard,
-                                            );
-                                            score += blockScore;  // Add block placement score
-                                            _checkAndClearLines();
-                                            
-                                            // Remove used pattern and check for game over
-                                            availablePatterns.remove(previewPattern);
-                                            if (availablePatterns.isEmpty) {
-                                              _generateNewPatterns();
-                                            }
-                                            
-                                            // Check for game over after pattern placement
-                                            if (_isGameOver()) {
-                                              _showGameOverPopup();
-                                            }
-                                          });
-                                        }
-                                        // Clear preview in all cases
-                                        setState(() {
-                                          previewPosition = null;
-                                          previewPattern = null;
-                                        });
-                                      }
-                                    },
-                                    onLeave: (data) {
-                                      setState(() {
-                                        previewPosition = null;
-                                        previewPattern = null;
-                                      });
-                                    },
-                                    onMove: (details) {
-                                      final position = gridSystem.getCenteredPatternPosition(
-                                        details.data,
-                                        details.offset,
-                                        context,
-                                      );
-                                      setState(() {
-                                        previewPosition = position;
-                                        previewPattern = details.data;
-                                        _updatePotentialClears();
-                                      });
-                                    },
-                                    builder: (context, candidateData, rejectedData) {
-                                      return Stack(
-                                        children: [
-                                          CustomPaint(
-                                            key: _gridKey,
-                                            size: Size(gridSize, gridSize),
-                                            painter: GridPainter(
+                                child: SizedBox(
+                                  width: gridSize,
+                                  // Make the drag area taller than the grid
+                                  height: gridSize + 125, // Extra space for dragging
+                                  child: Stack(
+                                    children: [
+                                      // The grid itself stays square
+                                      SizedBox(
+                                        width: gridSize,
+                                        height: gridSize,
+                                        child: Stack(
+                                          children: [
+                                            CustomPaint(
+                                              key: _gridKey,
+                                              size: Size(gridSize, gridSize),
+                                              painter: GridPainter(
+                                                grid: gridSystem,
+                                                gameBoard: gameBoard,
+                                                gridLineColor: Theme.of(context).brightness == Brightness.dark 
+                                                  ? Colors.grey[700]! 
+                                                  : const Color(0xFFE0E0E0),
+                                                highlightedPosition: previewPosition,
+                                                highlightedPattern: previewPattern,
+                                                onImageLoad: () {
+                                                  if (mounted) setState(() {});
+                                                },
+                                                isDarkMode: Theme.of(context).brightness == Brightness.dark,
+                                              ),
+                                            ),
+                                            GridOverlay(
                                               grid: gridSystem,
                                               gameBoard: gameBoard,
                                               gridLineColor: Theme.of(context).brightness == Brightness.dark 
@@ -647,27 +607,86 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                                 : const Color(0xFFE0E0E0),
                                               highlightedPosition: previewPosition,
                                               highlightedPattern: previewPattern,
-                                              onImageLoad: () {
-                                                if (mounted) setState(() {});
-                                              },
                                               isDarkMode: Theme.of(context).brightness == Brightness.dark,
                                             ),
-                                          ),
-                                          GridOverlay(
-                                            grid: gridSystem,
-                                            gameBoard: gameBoard,
-                                            gridLineColor: Theme.of(context).brightness == Brightness.dark 
-                                              ? Colors.grey[700]! 
-                                              : const Color(0xFFE0E0E0),
-                                            highlightedPosition: previewPosition,
-                                            highlightedPattern: previewPattern,
-                                            isDarkMode: Theme.of(context).brightness == Brightness.dark,
-                                          ),
-                                          if (_activeClearEffect != null)
-                                            _activeClearEffect!
-                                        ],
-                                      );
-                                    },
+                                          ],
+                                        ),
+                                      ),
+                                      // Wrap everything in a DragTarget that's taller than the grid
+                                      DragTarget<BlockPattern>(
+                                        onWillAccept: (data) => true,
+                                        onAcceptWithDetails: (details) async {
+                                          if (previewPosition != null && previewPattern != null) {
+                                            final isValid = gridSystem.canPlacePattern(
+                                              previewPattern!,
+                                              previewPosition!,
+                                              gameBoard,
+                                            );
+                                            if (isValid) {
+                                              await ref.read(feedbackManagerProvider).playFeedback();
+                                  
+                                              // Calculate score before clearing the preview
+                                              final blockScore = previewPattern!.shape
+                                                  .expand((row) => row)
+                                                  .where((cell) => cell)
+                                                  .length * 10;  // 10 points per block cell
+                                  
+                                              setState(() {
+                                                gridSystem.placeBlockPattern(
+                                                  previewPattern!,
+                                                  previewPosition!,
+                                                  gameBoard,
+                                                );
+                                                score += blockScore;  // Add block placement score
+                                                _checkAndClearLines();
+                                                
+                                                // Remove used pattern and check for game over
+                                                availablePatterns.remove(previewPattern);
+                                                if (availablePatterns.isEmpty) {
+                                                  _generateNewPatterns();
+                                                }
+                                                
+                                                // Check for game over after pattern placement
+                                                if (_isGameOver()) {
+                                                  _showGameOverPopup();
+                                                }
+                                              });
+                                            }
+                                            // Clear preview in all cases
+                                            setState(() {
+                                              previewPosition = null;
+                                              previewPattern = null;
+                                            });
+                                          }
+                                        },
+                                        onLeave: (data) {
+                                          setState(() {
+                                            previewPosition = null;
+                                            previewPattern = null;
+                                          });
+                                        },
+                                        onMove: (details) {
+                                          final position = gridSystem.getCenteredPatternPosition(
+                                            details.data,
+                                            details.offset,
+                                            context,
+                                          );
+                                          setState(() {
+                                            previewPosition = position;
+                                            previewPattern = details.data;
+                                            _updatePotentialClears();
+                                          });
+                                        },
+                                        builder: (context, candidateData, rejectedData) {
+                                          return Stack(
+                                            children: [
+                                              if (_activeClearEffect != null)
+                                                _activeClearEffect!
+                                            ],
+                                          );
+                                        },
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),
@@ -713,11 +732,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                 child: Draggable<BlockPattern>(
                                   data: pattern,
                                   dragAnchorStrategy: (draggable, context, position) {
-                                    // Return the center of the pattern
-                                    return Offset(
-                                      pattern.width * dragCellSize / 2,
-                                      pattern.height * dragCellSize / 2
-                                    );
+                                    // Calculate the center of the pattern
+                                    final centerX = pattern.width * dragCellSize / 2;
+                                    final centerY = pattern.height * dragCellSize / 2;
+                                    
+                                    // Add 100 pixels to the Y coordinate to move the drag point down
+                                    // This effectively moves the block up relative to the finger
+                                    return Offset(centerX, centerY + 125);
                                   },
                                   onDragStarted: () {
                                     ref.read(feedbackManagerProvider).playFeedback();

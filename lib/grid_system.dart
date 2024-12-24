@@ -85,8 +85,9 @@ class GridSystem {
     final finalCol = colDist < snapThreshold ? roundedCol : exactCol.floor();
     
     // Clamp the position to ensure the pattern stays within grid bounds
+    // Allow positions beyond the bottom to compensate for the upward offset
     return GridPosition(
-      _clampInt(finalRow, 0, rows - pattern.height),
+      _clampInt(finalRow, -pattern.height, rows),
       _clampInt(finalCol, 0, cols - pattern.width),
     );
   }
@@ -101,19 +102,28 @@ class GridSystem {
 
   // Check if a pattern can be placed at a position
   bool canPlacePattern(BlockPattern pattern, GridPosition position, List<List<bool>> gameBoard) {
-    // Check if the pattern would go out of bounds
-    if (position.row < 0 ||
-        position.col < 0 ||
-        position.row + pattern.height > rows ||
-        position.col + pattern.width > cols) {
-      return false;
+    // Check if any filled cell would be outside the grid bounds
+    for (int i = 0; i < pattern.height; i++) {
+      final boardRow = position.row + i;
+      for (int j = 0; j < pattern.width; j++) {
+        if (pattern.shape[i][j]) {
+          // If this cell is filled, it must be within grid bounds
+          if (boardRow < 0 || boardRow >= rows ||
+              position.col + j < 0 || position.col + j >= cols) {
+            return false;
+          }
+        }
+      }
     }
 
-    // Check if pattern overlaps with existing blocks
+    // Check for collisions with existing blocks
     for (int i = 0; i < pattern.height; i++) {
-      for (int j = 0; j < pattern.width; j++) {
-        if (pattern.shape[i][j] && gameBoard[position.row + i][position.col + j]) {
-          return false;
+      final boardRow = position.row + i;
+      if (boardRow >= 0 && boardRow < rows) {
+        for (int j = 0; j < pattern.width; j++) {
+          if (pattern.shape[i][j] && gameBoard[boardRow][position.col + j]) {
+            return false;
+          }
         }
       }
     }
@@ -135,9 +145,17 @@ class GridSystem {
   // Place a pattern on the game board
   void placeBlockPattern(BlockPattern pattern, GridPosition position, List<List<bool>> gameBoard) {
     for (int i = 0; i < pattern.height; i++) {
+      final boardRow = position.row + i;
+      // Skip rows that are outside the grid
+      if (boardRow < 0 || boardRow >= rows) continue;
+      
       for (int j = 0; j < pattern.width; j++) {
+        final boardCol = position.col + j;
+        // Skip columns that are outside the grid
+        if (boardCol < 0 || boardCol >= cols) continue;
+        
         if (pattern.shape[i][j]) {
-          gameBoard[position.row + i][position.col + j] = true;
+          gameBoard[boardRow][boardCol] = true;
         }
       }
     }
