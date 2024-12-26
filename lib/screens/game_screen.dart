@@ -471,7 +471,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 Expanded(
                   child: Center(
                     child: Container(
-                      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                      margin: const EdgeInsets.symmetric(horizontal: 2.0, vertical: 8.0),
                       decoration: BoxDecoration(
                         color: Theme.of(context).brightness == Brightness.dark
                             ? Colors.grey[850]
@@ -490,7 +490,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                         builder: (context, constraints) {
                           // Update grid cell size based on available space
                           final smallestDimension = math.min(constraints.maxWidth, constraints.maxHeight);
-                          final cellSize = (smallestDimension - 32) / rows;  // 32 for margin
+                          final cellSize = (smallestDimension - 4) / rows;  // 32 for margin
                           final gridSize = cellSize * rows;  // Total grid size
                           
                           // Calculate centering padding
@@ -671,8 +671,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   ),
                 ),
                 Container(
-                  margin: const EdgeInsets.all(16.0),
-                  padding: const EdgeInsets.all(16.0),
+                  margin: const EdgeInsets.all(2.0),
+                  padding: const EdgeInsets.all(2.0),
                   constraints: const BoxConstraints(maxHeight: 120), 
                   decoration: BoxDecoration(
                     color: Theme.of(context).brightness == Brightness.dark
