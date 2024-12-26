@@ -25,6 +25,9 @@ class _GameOverPopupState extends State<GameOverPopup>
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
   late int _currentScore;
+  bool _isHighScore = false;
+  int? _highScore;
+  String? selectedMessage;
 
   static const List<String> gameOverMessages = [
     "YOU'RE FIRED!",
@@ -39,15 +42,16 @@ class _GameOverPopupState extends State<GameOverPopup>
     "GAME OVER,\nFOLKS!",
   ];
 
-  late final String selectedMessage;
+  static const List<String> highScoreMessages = [
+    "YOU'RE UNBURDENED\nBY WHAT HAS BEEN!"
+  ];
 
   @override
   void initState() {
     super.initState();
     _currentScore = widget.finalScore;
-    final random = math.Random();
-    selectedMessage = gameOverMessages[random.nextInt(gameOverMessages.length)];
-
+    _checkHighScore();
+    
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -77,6 +81,34 @@ class _GameOverPopupState extends State<GameOverPopup>
     _controller.forward();
   }
 
+  Future<void> _checkHighScore() async {
+    try {
+      if (await GameServicesService.isSignedIn()) {
+        final highScore = await GameServicesService.getHighScore();
+        setState(() {
+          _highScore = highScore;
+          _isHighScore = widget.finalScore > highScore;
+          // Select message based on high score status
+          final random = math.Random();
+          selectedMessage = _isHighScore 
+              ? highScoreMessages[random.nextInt(highScoreMessages.length)]
+              : gameOverMessages[random.nextInt(gameOverMessages.length)];
+        });
+      } else {
+        final random = math.Random();
+        setState(() {
+          selectedMessage = gameOverMessages[random.nextInt(gameOverMessages.length)];
+        });
+      }
+    } catch (e) {
+      print('Error checking high score: $e');
+      final random = math.Random();
+      setState(() {
+        selectedMessage = gameOverMessages[random.nextInt(gameOverMessages.length)];
+      });
+    }
+  }
+
   @override
   void dispose() {
     _controller.dispose();
@@ -100,111 +132,132 @@ class _GameOverPopupState extends State<GameOverPopup>
                 ),
               ),
             Center(
-              child: Opacity(
-                opacity: _opacityAnimation.value,
+              child: Container(
+                padding: const EdgeInsets.all(32.0),
                 child: Transform.scale(
                   scale: _scaleAnimation.value,
-                  child: Container(
-                    width: 300,
-                    padding: const EdgeInsets.symmetric(vertical: 16.0, horizontal: 24.0),
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.2),
-                          blurRadius: 10,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        PatrioticTitle(
-                          text: selectedMessage,
-                          fontSize: 20,
-                        ),
-                        const SizedBox(height: 8),
-                        Container(
-                          width: 200,
-                          height: 200,
-                          child: Image.asset(
-                            'assets/trump_nobg.gif',
-                            fit: BoxFit.contain,
+                  child: Opacity(
+                    opacity: _opacityAnimation.value,
+                    child: Container(
+                      width: 320,
+                      padding: const EdgeInsets.symmetric(vertical: 24.0, horizontal: 32.0),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(24),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.15),
+                            blurRadius: 20,
+                            spreadRadius: 5,
+                            offset: const Offset(0, 4),
                           ),
-                        ),
-                        const SizedBox(height: 8),
-                        PatrioticTitle(
-                          text: 'FINAL SCORE',
-                          fontSize: 20,
-                        ),
-                        const SizedBox(height: 5),
-                        Text(
-                          '$_currentScore',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 36,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue[900],
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                        if (widget.debugMode) ...[
-                          Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              IconButton(
-                                icon: const Icon(Icons.remove, color: Colors.blue),
-                                onPressed: () {
-                                  setState(() {
-                                    _currentScore = math.max(0, _currentScore - 100);
-                                  });
-                                  GameServicesService.submitScore(_currentScore);
-                                },
-                              ),
-                              IconButton(
-                                icon: const Icon(Icons.add, color: Colors.blue),
-                                onPressed: () {
-                                  setState(() {
-                                    _currentScore += 100;
-                                  });
-                                  GameServicesService.submitScore(_currentScore);
-                                },
-                              ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
                         ],
-                        SizedBox(
-                          width: 200,
-                          height: 60,
-                          child: ElevatedButton(
-                            onPressed: widget.onRestart,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: Colors.blue[900],
-                              foregroundColor: Colors.white,
-                              elevation: 4,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(30),
-                              ),
-                              padding: const EdgeInsets.symmetric(vertical: 2),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(16),
+                            child: Image.asset(
+                              _isHighScore
+                                  ? 'assets/high_score.gif'
+                                  : 'assets/trump_nobg.gif',
+                              width: 180,
+                              height: 180,
+                              fit: BoxFit.cover,
                             ),
-                            child: const Center(
-                              child: Text(
+                          ),
+                          const SizedBox(height: 24),
+                          PatrioticTitle(
+                            text: selectedMessage ?? gameOverMessages[0],
+                            fontSize: 24,
+                          ),
+                          const SizedBox(height: 24),
+                          Container(
+                            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+                            decoration: BoxDecoration(
+                              color: Colors.blue[50],
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                            child: Column(
+                              children: [
+                                Text(
+                                  'FINAL SCORE',
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.w600,
+                                    color: Colors.blue[900]!.withOpacity(0.7),
+                                    letterSpacing: 1.2,
+                                  ),
+                                ),
+                                const SizedBox(height: 4),
+                                Text(
+                                  '$_currentScore',
+                                  style: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.blue[900],
+                                  ),
+                                ),
+                                if (_highScore != null) ...[
+                                  const SizedBox(height: 12),
+                                  Container(
+                                    width: double.infinity,
+                                    height: 1,
+                                    color: Colors.blue[200]!.withOpacity(0.3),
+                                  ),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    'HIGH SCORE',
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: Colors.blue[900]!.withOpacity(0.7),
+                                      letterSpacing: 1.2,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    '$_highScore',
+                                    style: TextStyle(
+                                      fontSize: 24,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.blue[900],
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          SizedBox(
+                            width: double.infinity,
+                            height: 56,
+                            child: ElevatedButton(
+                              onPressed: widget.onRestart,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue[900],
+                                foregroundColor: Colors.white,
+                                elevation: 2,
+                                shadowColor: Colors.blue[900]!.withOpacity(0.5),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                              ),
+                              child: const Text(
                                 'PLAY AGAIN',
-                                textAlign: TextAlign.center,
                                 style: TextStyle(
                                   fontSize: 18,
                                   fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.2,
                                 ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                   ),
                 ),

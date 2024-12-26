@@ -6,6 +6,7 @@ import 'screens/game_screen.dart';
 import 'package:block_puzzle_game/env/env.dart';
 import 'package:block_puzzle_game/providers/settings_notifier.dart' as settings;
 import 'package:block_puzzle_game/services/revenue_cat_service.dart';
+import 'package:block_puzzle_game/services/games_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:block_puzzle_game/screens/main_menu_screen.dart';
@@ -28,6 +29,13 @@ void main() async {
       : Env.revenueCatApiKeyIos);
 
   await AdService.initialize();
+  
+  // Initialize game services and sign in
+  try {
+    await GameServicesService.signIn();
+  } catch (e) {
+    print('Error signing into Game Services: $e');
+  }
 
   runApp(
     ProviderScope(

@@ -2,6 +2,7 @@ import 'dart:io' show Platform;
 import 'package:block_puzzle_game/providers/feedback_providers.dart';
 import 'package:block_puzzle_game/screens/game_screen.dart';
 import 'package:block_puzzle_game/widgets/patriotic_title.dart';
+import 'package:block_puzzle_game/widgets/top_player_showcase.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -102,22 +103,26 @@ class _MainMenuScreenState extends ConsumerState<MainMenuScreen> {
                     width: 300,
                     height: 300,
                   ),
-                  // Title
-                  const Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      PatrioticTitle(
-                        text: 'BLOCK BLAST',
-                        fontSize: 40,
-                        isSecondary: false,
-                      ),
-                      SizedBox(height: 5),
-                      PatrioticTitle(
-                        text: 'STARS & STRIPES',
-                        fontSize: 30,
-                        isSecondary: true,
-                      ),
-                    ],
+                  //const SizedBox(height: 4),
+                  const TopPlayerShowcase(),
+                  //const SizedBox(height: 4),
+                  const IntrinsicHeight(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: const [
+                        PatrioticTitle(
+                          text: 'BLOCK BLAST',
+                          fontSize: 40,
+                          isSecondary: false,
+                        ),
+                        SizedBox(height: 0),
+                        PatrioticTitle(
+                          text: 'STARS & STRIPES',
+                          fontSize: 30,
+                          isSecondary: true,
+                        ),
+                      ],
+                    ),
                   ),
                   // Play Button
                   Padding(

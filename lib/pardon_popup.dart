@@ -14,15 +14,11 @@ class _PardonPopupState extends State<PardonPopup> with SingleTickerProviderStat
   late Animation<double> _scaleAnimation;
   late Animation<double> _opacityAnimation;
 
-  static const Map<String, String> bidenContent = {
-    'https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExa2Jjc2U4d2p6azNjcDUwMThvMHJtc3JkNmMxa3JjN2hvanI2enNsNCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/4F4lRI7NDcYDTT9aZI/giphy.gif': 
-        "YOU GOT IT, JACK!",  // Thumbs up
-    'https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExejVtOWpjcGdwc3p1bWFvZDkzcDNvZmRrcjRoemNpbDNhZHoxejRuMiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Y1qcnIBrILmQ25p7vl/giphy.gif': 
-        "HERE'S THE DEAL:\nYOU'RE PARDONED!",  // Pointing and smiling
-    'https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExb2hpMjA4OHg0Mm95d3o2cDRjNWZkbHBtMWVuYmV3YWRjdHduaGdseSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/Kwi0Iu9MxxOgg/giphy.gif': 
-        "NO MALARKEY,\nTHAT WAS GOOD!",  // Laughing
-    'https://i.giphy.com/media/v1.Y2lkPTc5MGI3NjExZTlzM3NrZHhzdno4cXY1ZWxza2RoOWFlaXZkMDQ3Zm15ZXBubDgwNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/rX6REfmpQKqkGazkzm/giphy.gif': 
-        "AND THAT'S\nNO JOKE, FOLKS!",  // Not a Joke
+  static const Map<String, String> bidenGifs = {
+    'assets/gifs/thumbs_up.gif': "YOU GOT IT, JACK!",  // Thumbs up
+    'assets/gifs/pointing.gif': "HERE'S THE DEAL:\nYOU'RE PARDONED!",  // Pointing and smiling
+    'assets/gifs/laughing.gif': "NO MALARKEY,\nTHAT WAS GOOD!",  // Laughing
+    'assets/gifs/no_joke.gif': "AND THAT'S\nNO JOKE, FOLKS!",  // Not a Joke
   };
 
   late final String selectedGif;
@@ -32,7 +28,7 @@ class _PardonPopupState extends State<PardonPopup> with SingleTickerProviderStat
   void initState() {
     super.initState();
     final random = Random();
-    final entries = bidenContent.entries.toList();
+    final entries = bidenGifs.entries.toList();
     final selectedEntry = entries[random.nextInt(entries.length)];
     selectedGif = selectedEntry.key;
     selectedMessage = selectedEntry.value;
@@ -103,30 +99,11 @@ class _PardonPopupState extends State<PardonPopup> with SingleTickerProviderStat
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Image.network(
+                  Image.asset(
                     selectedGif,
                     height: 200,
                     width: 200,
                     fit: BoxFit.cover,
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return const SizedBox(
-                        height: 200,
-                        width: 200,
-                        child: Center(
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    },
-                    errorBuilder: (context, error, stackTrace) {
-                      return const SizedBox(
-                        height: 200,
-                        width: 200,
-                        child: Center(
-                          child: Icon(Icons.error),
-                        ),
-                      );
-                    },
                   ),
                   const SizedBox(height: 16),
                   PatrioticTitle(

@@ -8,6 +8,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 //import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:block_puzzle_game/services/revenue_cat_service.dart';
+import '../enums/block_placement_offset.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
   const SettingsScreen({super.key});
@@ -150,6 +151,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                             .read(settings.settingsNotifierProvider.notifier)
                             .setEnableSound(value);
                       },
+                    ),
+
+                    // Block Placement Offset
+                    ListTile(
+                      title: Text(
+                        'Block Placement Offset',
+                        style: const TextStyle(color: Colors.blue),
+                      ),
+                      trailing: DropdownButton<BlockPlacementOffset>(
+                        value: data.blockPlacementOffset,
+                        style: const TextStyle(color: Colors.blue),
+                        dropdownColor: Theme.of(context).scaffoldBackgroundColor,
+                        items: BlockPlacementOffset.values.map((offset) {
+                          return DropdownMenuItem(
+                            value: offset,
+                            child: Text(
+                              offset.label,
+                              style: const TextStyle(color: Colors.blue),
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (BlockPlacementOffset? value) async {
+                          if (value != null) {
+                            feedbackManager.playFeedback();
+                            await ref
+                                .read(settings.settingsNotifierProvider.notifier)
+                                .setBlockPlacementOffset(value);
+                          }
+                        },
+                      ),
                     ),
 
                     // Add space before the About section

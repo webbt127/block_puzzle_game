@@ -40,20 +40,27 @@ class GameServicesService {
 
   static Future<void> signIn() async {
     try {
-      await GameAuth.signIn();
-      print('GameAuth.isSignedIn: ${await GameAuth.isSignedIn}');
+      if (!(await isSignedIn())) {
+        await GameAuth.signIn();
+        print('GameAuth.isSignedIn: ${await GameAuth.isSignedIn}');
+      }
     } catch (e) {
       print('Error signing in: $e');
     }
   }
 
   static Future<bool> isSignedIn() async {
-    print('isSignedIn: ${await GamesServices.isSignedIn}');
-    return await GamesServices.isSignedIn;
+    try {
+      final signedIn = await GamesServices.isSignedIn;
+      print('isSignedIn: $signedIn');
+      return signedIn;
+    } catch (e) {
+      print('Error checking sign in status: $e');
+      return false;
+    }
   }
 
-  // Add method to get high score
-  Future<int> getHighScore() async {
+  static Future<int> getHighScore() async {
     try {
       if (!(await isSignedIn())) {
         await signIn();
@@ -65,6 +72,24 @@ class GameServicesService {
     } catch (e) {
       print('Error getting high score: $e');
       return 0;
+    }
+  }
+
+  static Future<List<LeaderboardScoreData>?> loadTopScores() async {
+    try {
+      if (!(await isSignedIn())) {
+        await signIn();
+      }
+      return await Leaderboards.loadLeaderboardScores(
+        androidLeaderboardID: GameServicesConstants.androidLeaderboardID,
+        iOSLeaderboardID: GameServicesConstants.iosLeaderboardID,
+        scope: PlayerScope.global,
+        timeScope: TimeScope.allTime,
+        maxResults: 3,
+      );
+    } catch (e) {
+      print('Error loading top scores: $e');
+      return null;
     }
   }
 }

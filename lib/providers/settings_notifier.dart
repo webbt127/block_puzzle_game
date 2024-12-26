@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:io' show Platform;
+import '../enums/block_placement_offset.dart';
 
 part 'settings_notifier.g.dart';
 
@@ -15,6 +16,7 @@ class Settings {
   final String languageCode;
   final ThemeMode themeMode;
   final ThemeType themeType;
+  final BlockPlacementOffset blockPlacementOffset;
 
   const Settings({
     this.showGrid = true,
@@ -24,6 +26,7 @@ class Settings {
     this.languageCode = 'en',
     this.themeMode = ThemeMode.system,
     this.themeType = ThemeType.blue,
+    this.blockPlacementOffset = BlockPlacementOffset.medium,
   });
 
   Settings copyWith({
@@ -34,6 +37,7 @@ class Settings {
     String? languageCode,
     ThemeMode? themeMode,
     ThemeType? themeType,
+    BlockPlacementOffset? blockPlacementOffset,
   }) {
     return Settings(
       showGrid: showGrid ?? this.showGrid,
@@ -43,6 +47,7 @@ class Settings {
       languageCode: languageCode ?? this.languageCode,
       themeMode: themeMode ?? this.themeMode,
       themeType: themeType ?? this.themeType,
+      blockPlacementOffset: blockPlacementOffset ?? this.blockPlacementOffset,
     );
   }
 
@@ -218,6 +223,8 @@ class SettingsNotifier extends _$SettingsNotifier {
       themeMode: ThemeMode.values[themeModeIndex],
       themeType:
           ThemeType.values[_prefs.getInt('theme_type') ?? ThemeType.blue.index],
+      blockPlacementOffset: BlockPlacementOffset.values[
+          _prefs.getInt('block_placement_offset') ?? BlockPlacementOffset.none.index],
     );
   }
 
@@ -300,6 +307,14 @@ class SettingsNotifier extends _$SettingsNotifier {
 
       await _prefs.setInt('theme_type', type.index);
       return settings.copyWith(themeType: type);
+    });
+  }
+
+  Future<void> setBlockPlacementOffset(BlockPlacementOffset offset) async {
+    state = await AsyncValue.guard(() async {
+      await _prefs.setInt('block_placement_offset', offset.index);
+      final settings = state.value!;
+      return settings.copyWith(blockPlacementOffset: offset);
     });
   }
 

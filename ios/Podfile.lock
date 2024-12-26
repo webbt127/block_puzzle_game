@@ -14,6 +14,8 @@ PODS:
   - GoogleUserMessagingPlatform (2.7.0)
   - just_audio (0.0.1):
     - Flutter
+  - package_info_plus (0.4.5):
+    - Flutter
   - path_provider_foundation (0.0.1):
     - Flutter
     - FlutterMacOS
@@ -41,6 +43,7 @@ DEPENDENCIES:
   - games_services (from `.symlinks/plugins/games_services/darwin`)
   - google_mobile_ads (from `.symlinks/plugins/google_mobile_ads/ios`)
   - just_audio (from `.symlinks/plugins/just_audio/ios`)
+  - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
   - purchases_flutter (from `.symlinks/plugins/purchases_flutter/ios`)
   - shared_preferences_foundation (from `.symlinks/plugins/shared_preferences_foundation/darwin`)
@@ -66,6 +69,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/google_mobile_ads/ios"
   just_audio:
     :path: ".symlinks/plugins/just_audio/ios"
+  package_info_plus:
+    :path: ".symlinks/plugins/package_info_plus/ios"
   path_provider_foundation:
     :path: ".symlinks/plugins/path_provider_foundation/darwin"
   purchases_flutter:
@@ -87,6 +92,7 @@ SPEC CHECKSUMS:
   google_mobile_ads: 2a538d8e42b1813809782792e48f8cf4374c2180
   GoogleUserMessagingPlatform: a8b56893477f67212fbc8411c139e61d463349f5
   just_audio: baa7252489dbcf47a4c7cc9ca663e9661c99aafa
+  package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46
   purchases_flutter: 613f27a4b8c3a34cd754936cdb93b6fc9e2ee0ed
   PurchasesHybridCommon: 6c07c9abb12b96413ee583c017957f52f5f4ceaa

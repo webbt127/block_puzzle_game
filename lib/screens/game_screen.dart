@@ -20,6 +20,7 @@ import '../services/games_services.dart';
 import '../services/revenue_cat_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
+import 'package:block_puzzle_game/providers/settings_notifier.dart' as settings;
 
 const int rows = 8;
 const int columns = 8;
@@ -479,13 +480,49 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         actions: [
           Padding(
             padding: const EdgeInsets.only(right: 16.0),
-            child: Text(
-              'Score: $score',
-              style: const TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-                color: Colors.blue,
-              ),
+            child: Column(
+              children: [
+                const SizedBox(height: 16),
+                if (kDebugMode) ...[
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle_outline),
+                        onPressed: () {
+                          setState(() {
+                            score = math.max(0, score - 1000);
+                          });
+                        },
+                      ),
+                      Text(
+                        'Score: $score',
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.add_circle_outline),
+                        onPressed: () {
+                          setState(() {
+                            score += 1000;
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                ],
+                Text(
+                  'Score: $score',
+                  style: const TextStyle(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue,
+                  ),
+                ),
+              ],
             ),
           ),
         ],
@@ -573,7 +610,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                 child: SizedBox(
                                   width: gridSize,
                                   // Make the drag area taller than the grid
-                                  height: gridSize + 125, // Extra space for dragging
+                                  height: gridSize + ref.watch(settings.settingsNotifierProvider).value!.blockPlacementOffset.value,
                                   child: Stack(
                                     children: [
                                       // The grid itself stays square
@@ -738,7 +775,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                     
                                     // Add 100 pixels to the Y coordinate to move the drag point down
                                     // This effectively moves the block up relative to the finger
-                                    return Offset(centerX, centerY + 125);
+                                    return Offset(centerX, centerY + ref.watch(settings.settingsNotifierProvider).value!.blockPlacementOffset.value);
                                   },
                                   onDragStarted: () {
                                     ref.read(feedbackManagerProvider).playFeedback();
