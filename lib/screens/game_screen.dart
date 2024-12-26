@@ -23,6 +23,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:block_puzzle_game/providers/settings_notifier.dart' as settings;
 import '../services/analytics_service.dart';
 import '../widgets/game_menu.dart';
+import '../widgets/score_display.dart';
 
 const int rows = 8;
 const int columns = 8;
@@ -451,52 +452,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           onFeedback: () => ref.read(feedbackManagerProvider).playFeedback(),
         ),
         actions: [
-          Padding(
-            padding: const EdgeInsets.only(right: 16.0),
-            child: Column(
-              children: [
-                const SizedBox(height: 16),
-                if (kDebugMode) ...[
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      IconButton(
-                        icon: const Icon(Icons.remove_circle_outline),
-                        onPressed: () {
-                          setState(() {
-                            score = math.max(0, score - 1000);
-                          });
-                        },
-                      ),
-                      Text(
-                        'Score: $score',
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      IconButton(
-                        icon: const Icon(Icons.add_circle_outline),
-                        onPressed: () {
-                          setState(() {
-                            score += 1000;
-                          });
-                        },
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 16),
-                ],
-                Text(
-                  'Score: $score',
-                  style: const TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
-                ),
-              ],
-            ),
+          ScoreDisplay(
+            score: score,
+            showDebugControls: kDebugMode,
+            onScoreChanged: (newScore) {
+              setState(() {
+                score = newScore;
+              });
+            },
           ),
         ],
       ),
