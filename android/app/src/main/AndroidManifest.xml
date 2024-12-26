@@ -1,7 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET"/>
     <application
-        android:label="block_puzzle_game"
+        android:label="Block Blast - Stars &amp; Stripes"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
         <activity

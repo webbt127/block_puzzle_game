@@ -14,6 +14,14 @@ packages:
     description: dart
     source: sdk
     version: "0.3.2"
+  amplitude_flutter:
+    dependency: "direct main"
+    description:
+      name: amplitude_flutter
+      sha256: "67f6a8dd00e3ed2d1666fc56e9e7493b5869436644bcd5e6db9aca833bfb1dd4"
+      url: "https://pub.dev"
+    source: hosted
+    version: "3.16.5"
   analyzer:
     dependency: transitive
     description:

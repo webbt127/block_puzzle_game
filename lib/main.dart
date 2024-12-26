@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'dart:async';
 import 'package:block_puzzle_game/screens/main_menu_screen.dart';
 import 'package:block_puzzle_game/services/ad_service.dart';
+import 'package:block_puzzle_game/services/analytics_service.dart';
 import 'package:flutter/material.dart';
 import 'screens/game_screen.dart';
 import 'package:block_puzzle_game/env/env.dart';
@@ -20,34 +22,60 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
 
-  final container = ProviderContainer();
-  final settingsProvider =
-      await container.read(settings.settingsNotifierProvider.future);
+  // Initialize error tracking
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+    AnalyticsService.logError(
+      'flutter_error',
+      details.exception,
+      details.stack,
+    );
+  };
 
-  await container.read(revenueCatServiceProvider).init(Platform.isAndroid
-      ? Env.revenueCatApiKeyAndroid
-      : Env.revenueCatApiKeyIos);
+  // Handle errors that occur during zone execution
+  runZonedGuarded(() async {
+    final container = ProviderContainer();
+    final settingsProvider =
+        await container.read(settings.settingsNotifierProvider.future);
 
-  await AdService.initialize();
-  
-  // Initialize game services and sign in
-  try {
-    await GameServicesService.signIn();
-  } catch (e) {
-    print('Error signing into Game Services: $e');
-  }
+    // Initialize services
+    await Future.wait([
+      AnalyticsService.initialize(),
+      AdService.initialize(),
+      container.read(revenueCatServiceProvider).init(Platform.isAndroid
+          ? Env.revenueCatApiKeyAndroid
+          : Env.revenueCatApiKeyIos),
+    ]);
 
-  runApp(
-    ProviderScope(
-      child: EasyLocalization(
-        supportedLocales: supportedLocales,
-        path: 'assets/translations',
-        fallbackLocale: const Locale('en'),
-        startLocale: Locale(settingsProvider.languageCode),
-        child: const MyApp(),
+    // Check if ads should be hidden
+    final hideAds = await container.read(hasHideAdsProvider.future);
+    if (!hideAds) {
+      // Preload interstitial ad
+      AdService.createInterstitialAd();
+    }
+
+    // Initialize game services and sign in
+    try {
+      await GameServicesService.signIn();
+    } catch (e) {
+      print('Error signing into Game Services: $e');
+      AnalyticsService.logError('game_services_signin_error', e, null);
+    }
+
+    runApp(
+      ProviderScope(
+        child: EasyLocalization(
+          supportedLocales: supportedLocales,
+          path: 'assets/translations',
+          fallbackLocale: const Locale('en'),
+          startLocale: Locale(settingsProvider.languageCode),
+          child: const MyApp(),
+        ),
       ),
-    ),
-  );
+    );
+  }, (error, stackTrace) {
+    AnalyticsService.logError('uncaught_error', error, stackTrace);
+  });
 }
 
 class MyApp extends ConsumerWidget {

@@ -21,6 +21,7 @@ import '../services/revenue_cat_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:block_puzzle_game/providers/settings_notifier.dart' as settings;
+import '../services/analytics_service.dart';
 
 const int rows = 8;
 const int columns = 8;
@@ -72,11 +73,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     
     if (!_hideAds) {
       _loadBannerAd();
-      // Load and show interstitial ad at game start
-      AdService.createInterstitialAd();
-      Future.delayed(const Duration(milliseconds: 500), () {
+      // Show preloaded interstitial ad
+      if (AdService.interstitialAd != null) {
         AdService.showInterstitialAd();
-      });
+      }
     }
   }
 
@@ -139,9 +139,26 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     return true;
   }
 
-  void _showGameOverPopup() {
+  void _showGameOverPopup() async {
     // Submit score to leaderboard
-    GameServicesService.submitScore(score);
+    await GameServicesService.submitScore(score);
+    
+    // Log game over analytics
+    AnalyticsService.logEvent('game_over', properties: {
+      'score': score,
+      'consecutive_clears': consecutiveClears,
+    });
+    
+    // Get high score before showing popup
+    int? highScore;
+    if (await GameServicesService.isSignedIn()) {
+      highScore = await GameServicesService.getHighScore();
+    }
+
+    // Add delay before showing popup
+    await Future.delayed(const Duration(seconds: 3));
+    
+    if (!mounted) return;
     
     showDialog(
       context: context,
@@ -150,6 +167,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         return GameOverPopup(
           finalScore: score,
           debugMode: kDebugMode, // Pass debug mode to popup
+          initialHighScore: highScore, // Pass the high score
           onRestart: () {
             // Play feedback
             final feedbackManager = ref.read(feedbackManagerProvider);
@@ -198,7 +216,15 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     }
 
     if (rowsToClear.isNotEmpty || columnsToClear.isNotEmpty) {
-      // Increment consecutive clears if lines were cleared
+      // Log line clear analytics
+      AnalyticsService.logEvent('lines_cleared', properties: {
+        'rows_cleared': rowsToClear.length,
+        'columns_cleared': columnsToClear.length,
+        'consecutive_clears': consecutiveClears + 1,
+        'score': score,
+      });
+      
+      // Increment consecutive clears
       consecutiveClears++;
       
       // Add points for the clear
@@ -274,6 +300,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   Future<void> _tryPlacePattern(BlockPattern pattern, int row, int col) async {
     if (gridSystem.canPlacePattern(pattern, GridPosition(row, col), gameBoard)) {
+      // Log block placement analytics
+      AnalyticsService.logEvent('block_placed', properties: {
+        'pattern_size': pattern.shape.expand((row) => row).where((cell) => cell).length,
+        'row': row,
+        'col': col,
+        'current_score': score,
+      });
+      
       setState(() {
         gridSystem.placeBlockPattern(pattern, GridPosition(row, col), gameBoard);
         score += pattern.shape.expand((row) => row).where((cell) => cell).length * 10;

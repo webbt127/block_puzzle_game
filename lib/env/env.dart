@@ -9,4 +9,7 @@ abstract class Env {
   
   @EnviedField(varName: 'REVENUECAT_API_KEY_IOS')
   static const String revenueCatApiKeyIos = _Env.revenueCatApiKeyIos;
+
+  @EnviedField(varName: 'AMPLITUDE_API_KEY')
+  static const String amplitudeApiKey = _Env.amplitudeApiKey;
 }

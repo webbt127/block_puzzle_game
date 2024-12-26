@@ -16,7 +16,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.4+18
+version: 1.0.4+19
 
 environment:
   sdk: '>=3.4.3 <4.0.0'
@@ -47,6 +47,7 @@ dependencies:
   envied: ^1.0.0
   palette_generator: ^0.3.3
   package_info_plus: ^8.1.2
+  amplitude_flutter: ^3.13.0
 
 dev_dependencies:
   flutter_test:
@@ -83,6 +84,10 @@ flutter:
     - assets/gifs/pointing.gif
     - assets/gifs/laughing.gif
     - assets/gifs/no_joke.gif
+    - assets/gifs/trump_hj.gif
+    - assets/gifs/trump_ty.gif
+    - assets/gifs/trump_lg.gif
+    - assets/gifs/trump_ly.gif
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see

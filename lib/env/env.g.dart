@@ -13,4 +13,6 @@ final class _Env {
       'goog_QCLLnJtzzVksnqXTtPpOICOxObA';
 
   static const String revenueCatApiKeyIos = 'appl_SGXlrkJVNgnHEdKqWdHUYpJlJdV';
+
+  static const String amplitudeApiKey = 'af33d0852ffea94f2961d793e1f87707';
 }

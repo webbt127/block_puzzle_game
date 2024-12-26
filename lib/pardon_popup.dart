@@ -19,6 +19,10 @@ class _PardonPopupState extends State<PardonPopup> with SingleTickerProviderStat
     'assets/gifs/pointing.gif': "HERE'S THE DEAL:\nYOU'RE PARDONED!",  // Pointing and smiling
     'assets/gifs/laughing.gif': "NO MALARKEY,\nTHAT WAS GOOD!",  // Laughing
     'assets/gifs/no_joke.gif': "AND THAT'S\nNO JOKE, FOLKS!",  // Not a Joke
+    'assets/gifs/trump_hj.gif': "NOBODY PLACES BLOCKS\nBETTER THAN YOU!",
+    'assets/gifs/trump_ty.gif': "THANK YOU FOR\nMAKING IT GREAT!",
+    'assets/gifs/trump_lg.gif': "WE HAVE THE MOST\nLOYAL PLAYERS, THANKS!",
+    'assets/gifs/trump_ly.gif': "THANK YOU,\nWE LOVE YOU ALL!",
   };
 
   late final String selectedGif;
