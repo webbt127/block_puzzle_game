@@ -22,6 +22,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:block_puzzle_game/providers/settings_notifier.dart' as settings;
 import '../services/analytics_service.dart';
+import '../widgets/game_menu.dart';
 
 const int rows = 8;
 const int columns = 8;
@@ -438,78 +439,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
-        leading: PopupMenuButton<String>(
-          icon: const Icon(Icons.menu, color: Colors.blue, size: 32),
-          itemBuilder: (BuildContext context) => <PopupMenuEntry<String>>[
-            const PopupMenuItem<String>(
-              value: 'home',
-              child: ListTile(
-                leading: const Icon(Icons.home, color: Colors.blue),
-                title: const Text('Home'),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-            const PopupMenuItem<String>(
-              value: 'leaderboard',
-              child: ListTile(
-                leading: const Icon(Icons.leaderboard_outlined, color: Colors.blue),
-                title: const Text('Leaderboard'),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-            const PopupMenuItem<String>(
-              value: 'store',
-              child: ListTile(
-                leading: const Icon(Icons.shopping_bag_outlined, color: Colors.blue),
-                title: const Text('Store'),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-            const PopupMenuItem<String>(
-              value: 'rate',
-              child: ListTile(
-                leading: const Icon(Icons.star_border, color: Colors.blue),
-                title: const Text('Rate App'),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-            const PopupMenuItem<String>(
-              value: 'settings',
-              child: ListTile(
-                leading: const Icon(Icons.settings, color: Colors.blue),
-                title: const Text('Settings'),
-                contentPadding: EdgeInsets.zero,
-              ),
-            ),
-          ],
-          onSelected: (String value) async {
-            // Play feedback for all menu interactions
-            await ref.read(feedbackManagerProvider).playFeedback();
-            if (!context.mounted) return;
-
-            switch (value) {
-              case 'home':
-                Navigator.of(context).pop();
-                break;
-              case 'leaderboard':
-                GameServicesService.showLeaderboard();
-                break;
-              case 'store':
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const StoreScreen(),
-                  ),
-                );
-                break;
-              case 'rate':
-                await _rateApp();
-                break;
-              case 'settings':
-                Navigator.of(context).pushNamed('/settings');
-                break;
-            }
-          },
+        leading: GameMenu(
+          onHome: () => Navigator.of(context).pop(),
+          onLeaderboard: () => GameServicesService.showLeaderboard(),
+          onStore: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const StoreScreen()),
+          ),
+          onRate: _rateApp,
+          onSettings: () => Navigator.of(context).pushNamed('/settings'),
+          onFeedback: () => ref.read(feedbackManagerProvider).playFeedback(),
         ),
         actions: [
           Padding(
