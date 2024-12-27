@@ -41,9 +41,31 @@ class AdService {
     throw UnsupportedError('Unsupported platform');
   }
 
+  static String get rewardedAdUnitId {
+    if (kDebugMode) {
+      // Test ad unit IDs
+      if (Platform.isAndroid) {
+        return 'ca-app-pub-3940256099942544/5224354917';
+      } else if (Platform.isIOS) {
+        return 'ca-app-pub-3940256099942544/1712485313';
+      }
+    } else {
+      // Production ad unit IDs
+      if (Platform.isAndroid) {
+        return 'ca-app-pub-2505538993380432/5048301836';
+      } else if (Platform.isIOS) {
+        return 'ca-app-pub-2505538993380432/4667090086';
+      }
+    }
+    throw UnsupportedError('Unsupported platform');
+  }
+
   static InterstitialAd? _interstitialAd;
   static int _numInterstitialLoadAttempts = 0;
   static const int maxFailedLoadAttempts = 3;
+
+  static RewardedAd? _rewardedAd;
+  static int _numRewardedLoadAttempts = 0;
 
   static Future<void> initialize() async {
     await MobileAds.instance.initialize();
@@ -100,5 +122,49 @@ class AdService {
       _interstitialAd!.show();
       _interstitialAd = null;
     }
+  }
+
+  static RewardedAd? get rewardedAd => _rewardedAd;
+
+  static void createRewardedAd() {
+    RewardedAd.load(
+      adUnitId: rewardedAdUnitId,
+      request: const AdRequest(),
+      rewardedAdLoadCallback: RewardedAdLoadCallback(
+        onAdLoaded: (RewardedAd ad) {
+          _rewardedAd = ad;
+          _numRewardedLoadAttempts = 0;
+        },
+        onAdFailedToLoad: (LoadAdError error) {
+          _numRewardedLoadAttempts += 1;
+          _rewardedAd = null;
+          if (_numRewardedLoadAttempts <= maxFailedLoadAttempts) {
+            createRewardedAd();
+          }
+        },
+      ),
+    );
+  }
+
+  static void showRewardedAd({
+    required OnUserEarnedRewardCallback onUserEarnedReward,
+  }) {
+    if (_rewardedAd == null) {
+      createRewardedAd();
+      return;
+    }
+
+    _rewardedAd!.fullScreenContentCallback = FullScreenContentCallback(
+      onAdDismissedFullScreenContent: (RewardedAd ad) {
+        ad.dispose();
+        createRewardedAd();
+      },
+      onAdFailedToShowFullScreenContent: (RewardedAd ad, AdError error) {
+        ad.dispose();
+        createRewardedAd();
+      },
+    );
+    _rewardedAd!.show(onUserEarnedReward: onUserEarnedReward);
+    _rewardedAd = null;
   }
 }

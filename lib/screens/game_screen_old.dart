@@ -44,8 +44,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   );
   int score = 0;
   int consecutiveClears = 0;  // Track consecutive clears
-  int rerollCount = 0;  // Track number of rerolls used
-  static const int maxRerolls = 3;  // Maximum number of rerolls allowed per game
   GridPosition? previewPosition;
   BlockPattern? previewPattern;
   BannerAd? _bannerAd;
@@ -54,7 +52,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   List<int> potentialRowClears = [];
   List<int> potentialColumnClears = [];
   BlockClearEffect? _activeClearEffect;
-  final GlobalKey _gridKey = GlobalKey();
+
+  final _gridKey = GlobalKey();
 
   @override
   void initState() {
@@ -111,60 +110,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     }
   }
 
-  bool _canAnyBlockFit() {
-    // Check if any possible block pattern could fit on the board
-    for (final basePattern in BlockPatterns.allPatterns) {
-      // Get all possible orientations of this pattern
-      for (final pattern in basePattern.getAllOrientations()) {
-        for (int row = 0; row < rows; row++) {
-          for (int col = 0; col < columns; col++) {
-            if (gridSystem.canPlacePattern(
-              pattern,
-              GridPosition(row, col),
-              gameBoard,
-            )) {
-              return true;
-            }
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  bool _canCurrentPatternsfit() {
-    // Check if any of the current patterns can be placed anywhere
-    for (final basePattern in availablePatterns) {
-      // Get all possible orientations of this pattern
-      for (final pattern in basePattern.getAllOrientations()) {
-        for (int row = 0; row < rows; row++) {
-          for (int col = 0; col < columns; col++) {
-            if (gridSystem.canPlacePattern(
-              pattern,
-              GridPosition(row, col),
-              gameBoard,
-            )) {
-              return true;
-            }
-          }
-        }
-      }
-    }
-    return false;
-  }
-
-  void _generateNewPatterns({bool afterAd = false}) {
+  void _generateNewPatterns() {
     setState(() {
       availablePatterns = BlockPatterns.getRandomPatterns(3);
-      
-      // If this is after an ad, keep rerolling until we get at least one pattern that fits
-      if (afterAd) {
-        int attempts = 0;
-        while (!_canCurrentPatternsfit() && attempts < 10) {
-          availablePatterns = BlockPatterns.getRandomPatterns(3);
-          attempts++;
-        }
-      }
     });
   }
 
@@ -213,9 +161,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     await Future.delayed(const Duration(seconds: 3));
     
     if (!mounted) return;
-
-    // Check if rerolls would even help
-    final canReroll = _canAnyBlockFit();
     
     showDialog(
       context: context,
@@ -225,24 +170,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           finalScore: score,
           debugMode: kDebugMode, // Pass debug mode to popup
           initialHighScore: highScore, // Pass the high score
-          rerollsRemaining: canReroll ? maxRerolls - rerollCount : 0,
-          onReroll: (canReroll && rerollCount < maxRerolls) ? () async {
-            if (AdService.rewardedAd == null) {
-              // If no ad is loaded, create one and wait a moment
-              AdService.createRewardedAd();
-              await Future.delayed(const Duration(milliseconds: 500));
-            }
-            // Show the ad if it's loaded
-            AdService.showRewardedAd(
-              onUserEarnedReward: (Ad ad, RewardItem reward) {
-                setState(() {
-                  rerollCount++;
-                  _generateNewPatterns(afterAd: true);
-                });
-                Navigator.of(context).pop(); // Dismiss the game over popup
-              },
-            );
-          } : null,
           onRestart: () {
             // Play feedback
             final feedbackManager = ref.read(feedbackManagerProvider);
@@ -256,7 +183,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               );
               score = 0;
               consecutiveClears = 0;
-              rerollCount = 0;  // Reset reroll count
               _generateNewPatterns();
             });
             Navigator.of(context).pop();
@@ -317,7 +243,19 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         );
       }
 
-      // First show the clear effect
+      // Clear the lines in the game state
+      for (final row in rowsToClear) {
+        for (int j = 0; j < columns; j++) {
+          gameBoard[row][j] = false;
+        }
+      }
+      for (final col in columnsToClear) {
+        for (int i = 0; i < rows; i++) {
+          gameBoard[i][col] = false;
+        }
+      }
+
+      // Show clear effect with current cell size
       WidgetsBinding.instance.addPostFrameCallback((_) {
         final RenderBox? gridBox = _gridKey.currentContext?.findRenderObject() as RenderBox?;
         if (gridBox != null) {
@@ -327,21 +265,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         }
       });
 
-      // Then clear the lines after a delay
-        if (!mounted) return;
-        setState(() {
-          // Clear the lines in the game state
-          for (final row in rowsToClear) {
-            for (int j = 0; j < columns; j++) {
-              gameBoard[row][j] = false;
-            }
-          }
-          for (final col in columnsToClear) {
-            for (int i = 0; i < rows; i++) {
-              gameBoard[i][col] = false;
-            }
-          }
-        });
+      setState(() {}); // Trigger rebuild to show cleared blocks
     } else {
       // Reset consecutive clears if no lines were cleared
       consecutiveClears = 0;
@@ -351,13 +275,17 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void _showClearEffect(List<int> rowsToClear, List<int> columnsToClear, double cellSize) {
     if (!mounted) return;
     
+    // Get the grid's position using the key
+    final RenderBox? gridBox = _gridKey.currentContext?.findRenderObject() as RenderBox?;
+    if (gridBox == null) return;
+
     setState(() {
       // The effect will be added to the widget tree in build()
       _activeClearEffect = BlockClearEffect(
         clearedRows: rowsToClear,
         clearedColumns: columnsToClear,
         cellSize: cellSize,
-        gridPosition: Offset.zero,
+        gridPosition: Offset.zero, // No offset needed as it's positioned in the Stack
         gridPadding: EdgeInsets.zero,
       );
       
@@ -617,6 +545,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                 ),
                                 child: SizedBox(
                                   width: gridSize,
+                                  // Make the drag area taller than the grid
                                   height: gridSize + ref.watch(settings.settingsNotifierProvider).value!.blockPlacementOffset.value,
                                   child: Stack(
                                     children: [
@@ -653,8 +582,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                               highlightedPattern: previewPattern,
                                               isDarkMode: Theme.of(context).brightness == Brightness.dark,
                                             ),
-                                            if (_activeClearEffect != null)
-                                              _activeClearEffect!,
                                           ],
                                         ),
                                       ),
@@ -724,7 +651,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                           });
                                         },
                                         builder: (context, candidateData, rejectedData) {
-                                          return Container(); // Empty container to receive drops
+                                          return Stack(
+                                            children: [
+                                              if (_activeClearEffect != null)
+                                                _activeClearEffect!
+                                            ],
+                                          );
                                         },
                                       ),
                                     ],
