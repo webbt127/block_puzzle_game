@@ -1,22 +1,21 @@
 import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:block_puzzle_game/env/env.dart';
 
 class AdService {
   static String get bannerAdUnitId {
     if (kDebugMode) {
-      // Test ad unit IDs
       if (Platform.isAndroid) {
-        return 'ca-app-pub-3940256099942544/6300978111';
+        return Env.testBannerAdUnitIdAndroid;
       } else if (Platform.isIOS) {
-        return 'ca-app-pub-3940256099942544/2934735716';
+        return Env.testBannerAdUnitIdIos;
       }
     } else {
-      // Production ad unit IDs
       if (Platform.isAndroid) {
-        return 'ca-app-pub-2505538993380432/5207541366';
+        return Env.bannerAdUnitIdAndroid;
       } else if (Platform.isIOS) {
-        return 'ca-app-pub-2505538993380432/5746892568';
+        return Env.bannerAdUnitIdIos;
       }
     }
     throw UnsupportedError('Unsupported platform');
@@ -24,18 +23,16 @@ class AdService {
 
   static String get interstitialAdUnitId {
     if (kDebugMode) {
-      // Test ad unit IDs
       if (Platform.isAndroid) {
-        return 'ca-app-pub-3940256099942544/1033173712';
+        return Env.testInterstitialAdUnitIdAndroid;
       } else if (Platform.isIOS) {
-        return 'ca-app-pub-3940256099942544/4411468910';
+        return Env.testInterstitialAdUnitIdIos;
       }
     } else {
-      // Production ad unit IDs
       if (Platform.isAndroid) {
-        return 'ca-app-pub-2505538993380432/7451427297';
+        return Env.interstitialAdUnitIdAndroid;
       } else if (Platform.isIOS) {
-        return 'ca-app-pub-2505538993380432/7989912521';
+        return Env.interstitialAdUnitIdIos;
       }
     }
     throw UnsupportedError('Unsupported platform');
@@ -43,18 +40,16 @@ class AdService {
 
   static String get rewardedAdUnitId {
     if (kDebugMode) {
-      // Test ad unit IDs
       if (Platform.isAndroid) {
-        return 'ca-app-pub-3940256099942544/5224354917';
+        return Env.testRewardedAdUnitIdAndroid;
       } else if (Platform.isIOS) {
-        return 'ca-app-pub-3940256099942544/1712485313';
+        return Env.testRewardedAdUnitIdIos;
       }
     } else {
-      // Production ad unit IDs
       if (Platform.isAndroid) {
-        return 'ca-app-pub-2505538993380432/5048301836';
+        return Env.rewardedAdUnitIdAndroid;
       } else if (Platform.isIOS) {
-        return 'ca-app-pub-2505538993380432/4667090086';
+        return Env.rewardedAdUnitIdIos;
       }
     }
     throw UnsupportedError('Unsupported platform');

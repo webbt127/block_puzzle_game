@@ -233,25 +233,66 @@ class _GameOverPopupState extends State<GameOverPopup>
                               if (widget.rerollsRemaining > 0 && widget.onReroll != null) ...[
                                 SizedBox(
                                   width: double.infinity,
-                                  height: 48,
+                                  height: 52,
                                   child: ElevatedButton(
                                     onPressed: widget.onReroll,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.green[700],
                                       foregroundColor: Colors.white,
-                                      elevation: 2,
+                                      elevation: 3,
                                       shadowColor: Colors.green[700]!.withOpacity(0.5),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(16),
                                       ),
+                                      padding: const EdgeInsets.symmetric(horizontal: 16),
                                     ),
-                                    child: Text(
-                                      'REROLL BLOCKS (${widget.rerollsRemaining} LEFT)',
-                                      style: const TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        letterSpacing: 1.2,
-                                      ),
+                                    child: Row(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        const Icon(
+                                          Icons.refresh_rounded,
+                                          size: 20,
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          'REROLL (${widget.rerollsRemaining})',
+                                          style: const TextStyle(
+                                            fontSize: 14,
+                                            fontWeight: FontWeight.bold,
+                                            letterSpacing: 0.8,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Container(
+                                          margin: const EdgeInsets.only(left: 4),
+                                          padding: const EdgeInsets.symmetric(
+                                            horizontal: 6,
+                                            vertical: 2,
+                                          ),
+                                          decoration: BoxDecoration(
+                                            color: Colors.white.withOpacity(0.2),
+                                            borderRadius: BorderRadius.circular(6),
+                                          ),
+                                          child: const Row(
+                                            mainAxisSize: MainAxisSize.min,
+                                            children: [
+                                              Icon(
+                                                Icons.play_circle_filled,
+                                                size: 14,
+                                              ),
+                                              SizedBox(width: 2),
+                                              Text(
+                                                'AD',
+                                                style: TextStyle(
+                                                  fontSize: 10,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ),
                                 ),
@@ -259,25 +300,43 @@ class _GameOverPopupState extends State<GameOverPopup>
                               ],
                               SizedBox(
                                 width: double.infinity,
-                                height: 48,
+                                height: 52,
                                 child: ElevatedButton(
                                   onPressed: widget.onRestart,
                                   style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.blue[900],
                                     foregroundColor: Colors.white,
-                                    elevation: 2,
+                                    elevation: 3,
                                     shadowColor: Colors.blue[900]!.withOpacity(0.5),
                                     shape: RoundedRectangleBorder(
                                       borderRadius: BorderRadius.circular(16),
                                     ),
+                                    padding: const EdgeInsets.symmetric(horizontal: 24),
                                   ),
-                                  child: const Text(
-                                    'PLAY AGAIN',
-                                    style: TextStyle(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      letterSpacing: 1.2,
-                                    ),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Container(
+                                        padding: const EdgeInsets.all(8),
+                                        decoration: BoxDecoration(
+                                          color: Colors.white.withOpacity(0.15),
+                                          borderRadius: BorderRadius.circular(12),
+                                        ),
+                                        child: const Icon(
+                                          Icons.play_arrow_rounded,
+                                          size: 24,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 12),
+                                      const Text(
+                                        'PLAY AGAIN',
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          fontWeight: FontWeight.bold,
+                                          letterSpacing: 1.2,
+                                        ),
+                                      ),
+                                    ],
                                   ),
                                 ),
                               ),

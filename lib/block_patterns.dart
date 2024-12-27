@@ -1,5 +1,6 @@
 import 'dart:math';
 import 'package:flutter/material.dart';
+import 'dart:developer' as developer;
 
 class BlockPattern {
   List<List<bool>> shape;
@@ -26,20 +27,42 @@ class BlockPattern {
     return BlockPattern(shape: rotated);
   }
 
+  // Flip the pattern horizontally
+  BlockPattern flipHorizontal() {
+    List<List<bool>> flipped = shape.map((row) => row.reversed.toList()).toList();
+    return BlockPattern(shape: flipped);
+  }
+
+  // Flip the pattern vertically
+  BlockPattern flipVertical() {
+    List<List<bool>> flipped = shape.reversed.map((row) => List<bool>.from(row)).toList();
+    return BlockPattern(shape: flipped);
+  }
+
   // Get all unique orientations of this pattern
   List<BlockPattern> getAllOrientations() {
     Set<String> uniquePatterns = {};
     List<BlockPattern> orientations = [];
-    BlockPattern current = this;
+    
+    // Get the base pattern and its flipped versions
+    List<BlockPattern> basePatterns = [
+      this,
+      flipHorizontal(),
+      flipVertical(),
+      flipHorizontal().flipVertical(),
+    ];
 
-    // Try all 4 rotations
-    for (int i = 0; i < 4; i++) {
-      String patternString = current.shape.map((row) => row.join()).join();
-      if (!uniquePatterns.contains(patternString)) {
-        uniquePatterns.add(patternString);
-        orientations.add(current.copy());
+    // For each base pattern, try all 4 rotations
+    for (final basePattern in basePatterns) {
+      BlockPattern current = basePattern;
+      for (int i = 0; i < 4; i++) {
+        String patternString = current.shape.map((row) => row.join()).join();
+        if (!uniquePatterns.contains(patternString)) {
+          uniquePatterns.add(patternString);
+          orientations.add(current.copy());
+        }
+        current = current.rotateClockwise();
       }
-      current = current.rotateClockwise();
     }
 
     return orientations;
@@ -104,7 +127,6 @@ class BlockPatterns {
       [false, false, true],
       [true, true, true],
     ]),
-
     // Z shape (2 orientations)
     BlockPattern(shape: [
       [true, true, false],
@@ -129,6 +151,18 @@ class BlockPatterns {
     }
     
     return patterns;
+  }
+
+  // Convert patterns to a format suitable for saving
+  static List<List<List<bool>>> getSavedStateFromPatterns(List<BlockPattern> patterns) {
+    developer.log('Converting ${patterns.length} patterns to saved state');
+    return patterns.map((pattern) => pattern.shape).toList();
+  }
+
+  // Convert saved state back to patterns
+  static List<BlockPattern> getPatternsFromSavedState(List<List<List<bool>>> patterns) {
+    developer.log('Converting saved state to ${patterns.length} patterns');
+    return patterns.map((shape) => BlockPattern(shape: shape)).toList();
   }
 }
 

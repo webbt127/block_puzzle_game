@@ -12,6 +12,24 @@ class ChangelogEntry {
 
 const List<ChangelogEntry> changelog = [
   ChangelogEntry(
+    version: '1.0.6',
+    buildNumber: '21',
+    changes: [
+      'Add game saves',
+      'Modify reroll button',
+      'Bug fixes and performance improvements',
+    ],
+  ),
+  ChangelogEntry(
+    version: '1.0.5',
+    buildNumber: '20',
+    changes: [
+      'Update GIF pool',
+      'Add reroll blocks button',
+      'Bug fixes and performance improvements',
+    ],
+  ),
+  ChangelogEntry(
     version: '1.0.4',
     buildNumber: '18',
     changes: [
