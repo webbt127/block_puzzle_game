@@ -10,6 +10,8 @@
 .svn/
 migrate_working_dir/
 android/app/build
+.env
+*.zip
 
 # IntelliJ related
 *.iml
@@ -31,6 +33,10 @@ android/app/build
 .pub-cache/
 .pub/
 /build/
+/linux
+/windows
+/macos
+/web
 
 # Symbolication related
 app.*.symbols
