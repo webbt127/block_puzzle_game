@@ -2,8 +2,9 @@ import 'package:block_puzzle_game/providers/feedback_providers.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:purchases_flutter/purchases_flutter.dart';
-import '../services/revenue_cat_service.dart';
+import 'package:in_app_purchase/in_app_purchase.dart';
+import '../services/store_service.dart';
+import '../services/logging_service.dart';
 
 class StoreScreen extends ConsumerStatefulWidget {
   const StoreScreen({super.key});
@@ -14,13 +15,15 @@ class StoreScreen extends ConsumerStatefulWidget {
 
 class _StoreScreenState extends ConsumerState<StoreScreen>
     with SingleTickerProviderStateMixin {
-  static const String entitlementID = 'premium';
   late TabController _tabController;
 
   @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 2, vsync: this);
+    
+    // Initialize store
+    ref.read(initializeStoreProvider);
   }
 
   @override
@@ -32,16 +35,19 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
   Future<void> _refreshProducts() async {
     final feedbackManager = ref.read(settingsFeedbackProvider);
     feedbackManager.playFeedback();
-    ref.invalidate(isSubscribedProvider);
     ref.invalidate(hasHideAdsProvider);
     await Future.wait([
-      ref.refresh(productsProvider.future),
+      ref.refresh(availableProductsProvider.future),
       ref.refresh(purchasedProductsProvider.future),
     ]);
   }
 
-  Widget _buildProductList(List<StoreProduct> products,
+  Widget _buildProductList(List<ProductDetails> products,
       {bool isPurchased = false}) {
+    LoggingService.log('Building product list. isPurchased: $isPurchased, products: ${products.length}');
+    for (var product in products) {
+      LoggingService.log('- ${product.id} (${product.title})');
+    }
     return ListView.builder(
       itemCount: products.length,
       itemBuilder: (context, index) {
@@ -69,7 +75,7 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
                       backgroundColor: Theme.of(context).colorScheme.primary,
                     ),
                     onPressed: () => _handlePurchase(product),
-                    child: Text(product.priceString),
+                    child: Text(product.price),
                   ),
           ),
         );
@@ -77,19 +83,16 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
     );
   }
 
-  Future<void> _handlePurchase(StoreProduct product) async {
+  Future<void> _handlePurchase(ProductDetails product) async {
     final feedbackManager = ref.read(settingsFeedbackProvider);
     feedbackManager.playFeedback();
     try {
-      final result =
-          await ref.read(revenueCatServiceProvider).purchaseProduct(product);
-      if (result.entitlements.all[entitlementID]?.isActive ?? false) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Purchase successful!')),
-          );
-          _refreshProducts();
-        }
+      final success = await ref.read(storeServiceProvider).buyProduct(product);
+      if (success && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Purchase initiated!')),
+        );
+        _refreshProducts();
       }
     } catch (e) {
       if (mounted) {
@@ -102,9 +105,10 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
 
   @override
   Widget build(BuildContext context) {
-    ref.watch(isSubscribedProvider);
     ref.watch(hasHideAdsProvider);
     final feedbackManager = ref.watch(settingsFeedbackProvider);
+
+    LoggingService.log('StoreScreen: Building screen');
 
     return Scaffold(
       appBar: AppBar(
@@ -135,11 +139,11 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
             onPressed: () async {
               feedbackManager.playFeedback();
               try {
-                await ref.read(revenueCatServiceProvider).restorePurchases();
+                await ref.read(storeServiceProvider).restorePurchases();
                 if (mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     const SnackBar(
-                        content: Text('Purchases restored successfully')),
+                        content: Text('Restore initiated')),
                   );
                   _refreshProducts();
                 }
@@ -168,9 +172,16 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
           controller: _tabController,
           children: [
             // Available Products Tab
-            FutureBuilder<List<StoreProduct>>(
-              future: ref.watch(productsProvider.future),
+            FutureBuilder<List<ProductDetails>>(
+              future: ref.watch(availableProductsProvider.future),
               builder: (context, snapshot) {
+                LoggingService.log('StoreScreen: Building available products tab');
+                LoggingService.log('- Connection state: ${snapshot.connectionState}');
+                LoggingService.log('- Has error: ${snapshot.hasError}');
+                LoggingService.log('- Error: ${snapshot.error}');
+                LoggingService.log('- Has data: ${snapshot.hasData}');
+                LoggingService.log('- Data length: ${snapshot.data?.length ?? 0}');
+
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
@@ -196,9 +207,16 @@ class _StoreScreenState extends ConsumerState<StoreScreen>
               },
             ),
             // Purchased Products Tab
-            FutureBuilder<List<StoreProduct>>(
+            FutureBuilder<List<ProductDetails>>(
               future: ref.watch(purchasedProductsProvider.future),
               builder: (context, snapshot) {
+                LoggingService.log('StoreScreen: Building purchased products tab');
+                LoggingService.log('- Connection state: ${snapshot.connectionState}');
+                LoggingService.log('- Has error: ${snapshot.hasError}');
+                LoggingService.log('- Error: ${snapshot.error}');
+                LoggingService.log('- Has data: ${snapshot.hasData}');
+                LoggingService.log('- Data length: ${snapshot.data?.length ?? 0}');
+
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }

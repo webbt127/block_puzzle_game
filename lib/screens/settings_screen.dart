@@ -2,12 +2,12 @@ import 'package:block_puzzle_game/providers/feedback_providers.dart';
 import 'package:block_puzzle_game/providers/settings_notifier.dart' as settings;
 import 'package:block_puzzle_game/providers/settings_notifier.dart';
 import 'package:block_puzzle_game/screens/store_screen.dart';
+import 'package:block_puzzle_game/services/ad_service.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 //import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:block_puzzle_game/services/revenue_cat_service.dart';
 import '../enums/block_placement_offset.dart';
 
 class SettingsScreen extends ConsumerStatefulWidget {
@@ -200,6 +200,36 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
                         Navigator.pushNamed(context, '/about');
                       },
                     ),
+                    // ListTile(
+                    //   title: const Text('View Logs'),
+                    //   onTap: () async {
+                    //     final logs = await AdService.getLogs();
+                    //     if (context.mounted) {
+                    //       showDialog(
+                    //         context: context,
+                    //         builder: (context) => AlertDialog(
+                    //           title: const Text('Logs'),
+                    //           content: SingleChildScrollView(
+                    //             child: Text(logs),
+                    //           ),
+                    //           actions: [
+                    //             TextButton(
+                    //               onPressed: () async {
+                    //                 await AdService.clearLogs();
+                    //                 Navigator.pop(context);
+                    //               },
+                    //               child: const Text('Clear'),
+                    //             ),
+                    //             TextButton(
+                    //               onPressed: () => Navigator.pop(context),
+                    //               child: const Text('Close'),
+                    //             ),
+                    //           ],
+                    //         ),
+                    //       );
+                    //     }
+                    //   },
+                    // ),
                   ],
                 ),
               ),

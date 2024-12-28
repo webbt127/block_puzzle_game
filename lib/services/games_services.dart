@@ -27,11 +27,32 @@ class GameServicesService {
     try {
       if (!(await isSignedIn())) {
         await signIn();
+        // Wait a bit for sign-in to complete
+        await Future.delayed(const Duration(milliseconds: 500));
+        
+        // Double check sign in was successful
+        if (!(await isSignedIn())) {
+          print('Failed to sign in, cannot show leaderboard');
+          return;
+        }
       }
-      await Leaderboards.showLeaderboards(
-        androidLeaderboardID: GameServicesConstants.androidLeaderboardID,
-        iOSLeaderboardID: GameServicesConstants.iosLeaderboardID,
-      );
+
+      // Try to show leaderboard
+      try {
+        await Leaderboards.showLeaderboards(
+          androidLeaderboardID: GameServicesConstants.androidLeaderboardID,
+          iOSLeaderboardID: GameServicesConstants.iosLeaderboardID,
+        );
+      } catch (e) {
+        // If first attempt fails, try signing in again and retry
+        print('First attempt to show leaderboard failed, retrying with fresh sign-in');
+        await signIn();
+        await Future.delayed(const Duration(milliseconds: 500));
+        await Leaderboards.showLeaderboards(
+          androidLeaderboardID: GameServicesConstants.androidLeaderboardID,
+          iOSLeaderboardID: GameServicesConstants.iosLeaderboardID,
+        );
+      }
     } catch (e, stackTrace) {
       print('Error showing leaderboard: $e');
       print('Stack trace: $stackTrace');

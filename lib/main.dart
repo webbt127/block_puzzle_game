@@ -3,11 +3,11 @@ import 'dart:async';
 import 'package:block_puzzle_game/screens/main_menu_screen.dart';
 import 'package:block_puzzle_game/services/ad_service.dart';
 import 'package:block_puzzle_game/services/analytics_service.dart';
+import 'package:block_puzzle_game/services/store_service.dart';
 import 'package:flutter/material.dart';
 import 'screens/game_screen.dart';
 import 'package:block_puzzle_game/env/env.dart';
 import 'package:block_puzzle_game/providers/settings_notifier.dart' as settings;
-import 'package:block_puzzle_game/services/revenue_cat_service.dart';
 import 'package:block_puzzle_game/services/games_services.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -19,6 +19,7 @@ import 'package:block_puzzle_game/screens/settings_screen.dart';
 import 'package:block_puzzle_game/screens/about_screen.dart';
 
 void main() async {
+  // Ensure this is called first, before any other initialization
   WidgetsFlutterBinding.ensureInitialized();
   await EasyLocalization.ensureInitialized();
 
@@ -32,50 +33,52 @@ void main() async {
     );
   };
 
-  // Handle errors that occur during zone execution
-  runZonedGuarded(() async {
-    final container = ProviderContainer();
-    final settingsProvider =
-        await container.read(settings.settingsNotifierProvider.future);
+  final container = ProviderContainer();
+  final settingsProvider =
+      await container.read(settings.settingsNotifierProvider.future);
 
-    // Initialize services
-    await Future.wait([
-      AnalyticsService.initialize(),
-      AdService.initialize(),
-      container.read(revenueCatServiceProvider).init(Platform.isAndroid
-          ? Env.revenueCatApiKeyAndroid
-          : Env.revenueCatApiKeyIos),
-    ]);
+  // Initialize all services first
+  await Future.wait([
+    AnalyticsService.initialize(),
+    AdService.initialize(),
+    container.read(initializeStoreProvider.future),
+  ]);
 
-    // Check if ads should be hidden
-    final hideAds = await container.read(hasHideAdsProvider.future);
-    if (!hideAds) {
-      // Preload interstitial ad
-      AdService.createInterstitialAd();
-    }
+  // Check if ads should be hidden
+  final hideAds = await container.read(hasHideAdsProvider.future);
+  if (!hideAds) {
+    // Preload interstitial ad
+    AdService.createInterstitialAd();
+  }
 
-    // Initialize game services and sign in
-    try {
-      await GameServicesService.signIn();
-    } catch (e) {
-      print('Error signing into Game Services: $e');
-      AnalyticsService.logError('game_services_signin_error', e, null);
-    }
+  // Initialize game services and sign in
+  try {
+    await GameServicesService.signIn();
+  } catch (e) {
+    print('Error signing into Game Services: $e');
+    AnalyticsService.logError('game_services_signin_error', e, null);
+  }
 
-    runApp(
-      ProviderScope(
-        child: EasyLocalization(
-          supportedLocales: supportedLocales,
-          path: 'assets/translations',
-          fallbackLocale: const Locale('en'),
-          startLocale: Locale(settingsProvider.languageCode),
-          child: const MyApp(),
+  // Run the app inside the error zone
+  runZonedGuarded(
+    () {
+      runApp(
+        ProviderScope(
+          child: EasyLocalization(
+            supportedLocales: supportedLocales,
+            path: 'assets/translations',
+            fallbackLocale: const Locale('en'),
+            startLocale: Locale(settingsProvider.languageCode),
+            child: const MyApp(),
+          ),
         ),
-      ),
-    );
-  }, (error, stackTrace) {
-    AnalyticsService.logError('uncaught_error', error, stackTrace);
-  });
+      );
+    },
+    (error, stack) {
+      print('Uncaught error: $error');
+      AnalyticsService.logError('uncaught_error', error, stack);
+    },
+  );
 }
 
 class MyApp extends ConsumerWidget {

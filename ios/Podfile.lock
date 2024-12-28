@@ -18,6 +18,9 @@ PODS:
     - Google-Mobile-Ads-SDK (~> 11.10.0)
     - webview_flutter_wkwebview
   - GoogleUserMessagingPlatform (2.7.0)
+  - in_app_purchase_storekit (0.0.1):
+    - Flutter
+    - FlutterMacOS
   - just_audio (0.0.1):
     - Flutter
   - package_info_plus (0.4.5):
@@ -49,6 +52,7 @@ DEPENDENCIES:
   - Flutter (from `Flutter`)
   - games_services (from `.symlinks/plugins/games_services/darwin`)
   - google_mobile_ads (from `.symlinks/plugins/google_mobile_ads/ios`)
+  - in_app_purchase_storekit (from `.symlinks/plugins/in_app_purchase_storekit/darwin`)
   - just_audio (from `.symlinks/plugins/just_audio/ios`)
   - package_info_plus (from `.symlinks/plugins/package_info_plus/ios`)
   - path_provider_foundation (from `.symlinks/plugins/path_provider_foundation/darwin`)
@@ -78,6 +82,8 @@ EXTERNAL SOURCES:
     :path: ".symlinks/plugins/games_services/darwin"
   google_mobile_ads:
     :path: ".symlinks/plugins/google_mobile_ads/ios"
+  in_app_purchase_storekit:
+    :path: ".symlinks/plugins/in_app_purchase_storekit/darwin"
   just_audio:
     :path: ".symlinks/plugins/just_audio/ios"
   package_info_plus:
@@ -105,6 +111,7 @@ SPEC CHECKSUMS:
   Google-Mobile-Ads-SDK: 13e6e98edfd78ad8d8a791edb927658cc260a56f
   google_mobile_ads: 2a538d8e42b1813809782792e48f8cf4374c2180
   GoogleUserMessagingPlatform: a8b56893477f67212fbc8411c139e61d463349f5
+  in_app_purchase_storekit: 8c3b0b3eb1b0f04efbff401c3de6266d4258d433
   just_audio: baa7252489dbcf47a4c7cc9ca663e9661c99aafa
   package_info_plus: c0502532a26c7662a62a356cebe2692ec5fe4ec4
   path_provider_foundation: 2b6b4c569c0fb62ec74538f866245ac84301af46

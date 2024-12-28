@@ -3,6 +3,7 @@ import 'package:block_puzzle_game/services/games_services.dart';
 import 'package:block_puzzle_game/services/ad_service.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' as foundation;
 import 'widgets/patriotic_title.dart';
 
 class GameOverPopup extends StatefulWidget {
@@ -12,12 +13,14 @@ class GameOverPopup extends StatefulWidget {
   final int? initialHighScore;
   final int rerollsRemaining;
   final VoidCallback? onReroll;
+  final bool hideAds;
 
   const GameOverPopup({
     super.key,
     required this.finalScore,
     required this.onRestart,
     required this.debugMode,
+    required this.hideAds,
     this.initialHighScore,
     this.rerollsRemaining = 0,
     this.onReroll,
@@ -57,6 +60,7 @@ class _GameOverPopupState extends State<GameOverPopup>
   @override
   void initState() {
     super.initState();
+    foundation.debugPrint('[GameOverPopup] initState');
     _currentScore = widget.finalScore;
     _highScore = widget.initialHighScore;
     _isHighScore = _highScore != null && widget.finalScore > _highScore!;
@@ -69,7 +73,8 @@ class _GameOverPopupState extends State<GameOverPopup>
     
     // Preload rewarded ad if rerolls are available
     if (widget.rerollsRemaining > 0 && widget.onReroll != null) {
-      AdService.createRewardedAd();
+      foundation.debugPrint('[GameOverPopup] Creating rewarded ad');
+      AdService.loadRewardedAd();
     }
     
     _controller = AnimationController(
@@ -230,113 +235,139 @@ class _GameOverPopupState extends State<GameOverPopup>
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              if (widget.rerollsRemaining > 0 && widget.onReroll != null) ...[
-                                SizedBox(
+                              // Show reroll button if:
+                              // 1. Rerolls are remaining
+                              // 2. onReroll callback is provided
+                              // 3. If ads not hidden: rewarded ad must be available
+                              if (widget.rerollsRemaining > 0 && 
+                                  widget.onReroll != null &&
+                                  (widget.hideAds || AdService.hasRewardedAd)) ...[
+                                Padding(
+                                  padding: const EdgeInsets.only(bottom: 12),
+                                  child: ConstrainedBox(
+                                    constraints: BoxConstraints(
+                                      maxWidth: MediaQuery.of(context).size.width * 0.7,
+                                    ),
+                                    child: SizedBox(
+                                      width: double.infinity,
+                                      height: 44,
+                                      child: ElevatedButton(
+                                        onPressed: widget.onReroll,
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.green[700],
+                                          foregroundColor: Colors.white,
+                                          elevation: 3,
+                                          shadowColor: Colors.green[700]!.withOpacity(0.5),
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          padding: EdgeInsets.symmetric(
+                                            horizontal: !widget.hideAds ? 8 : 12,
+                                          ),
+                                        ),
+                                        child: Row(
+                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisSize: MainAxisSize.min,
+                                          children: [
+                                            const Icon(
+                                              Icons.refresh_rounded,
+                                              size: 16,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              'REROLL (${widget.rerollsRemaining})',
+                                              style: const TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            if (!widget.hideAds) ...[
+                                              const SizedBox(width: 4),
+                                              Container(
+                                                padding: const EdgeInsets.symmetric(
+                                                  horizontal: 3,
+                                                  vertical: 1,
+                                                ),
+                                                decoration: BoxDecoration(
+                                                  color: Colors.white.withOpacity(0.2),
+                                                  borderRadius: BorderRadius.circular(4),
+                                                ),
+                                                child: const Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    Icon(
+                                                      Icons.play_circle_filled,
+                                                      size: 10,
+                                                    ),
+                                                    SizedBox(width: 1),
+                                                    Text(
+                                                      'AD',
+                                                      style: TextStyle(
+                                                        fontSize: 8,
+                                                        fontWeight: FontWeight.bold,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ],
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                              ConstrainedBox(
+                                constraints: BoxConstraints(
+                                  maxWidth: MediaQuery.of(context).size.width * 0.7,
+                                ),
+                                child: SizedBox(
                                   width: double.infinity,
-                                  height: 52,
+                                  height: 44,
                                   child: ElevatedButton(
-                                    onPressed: widget.onReroll,
+                                    onPressed: () {
+                                      // Show interstitial ad if available
+                                      if (AdService.hasInterstitialAd && !widget.hideAds) {
+                                        AdService.showInterstitialAd();
+                                      }
+                                      widget.onRestart();
+                                    },
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.green[700],
+                                      backgroundColor: Colors.blue[900],
                                       foregroundColor: Colors.white,
                                       elevation: 3,
-                                      shadowColor: Colors.green[700]!.withOpacity(0.5),
+                                      shadowColor: Colors.blue[900]!.withOpacity(0.5),
                                       shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(16),
+                                        borderRadius: BorderRadius.circular(12),
                                       ),
-                                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                                      padding: const EdgeInsets.symmetric(horizontal: 12),
                                     ),
                                     child: Row(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
-                                        const Icon(
-                                          Icons.refresh_rounded,
-                                          size: 20,
-                                        ),
-                                        const SizedBox(width: 8),
-                                        Text(
-                                          'REROLL (${widget.rerollsRemaining})',
-                                          style: const TextStyle(
-                                            fontSize: 14,
-                                            fontWeight: FontWeight.bold,
-                                            letterSpacing: 0.8,
-                                          ),
-                                        ),
-                                        const SizedBox(width: 8),
                                         Container(
-                                          margin: const EdgeInsets.only(left: 4),
-                                          padding: const EdgeInsets.symmetric(
-                                            horizontal: 6,
-                                            vertical: 2,
-                                          ),
+                                          padding: const EdgeInsets.all(4),
                                           decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(0.2),
-                                            borderRadius: BorderRadius.circular(6),
+                                            color: Colors.white.withOpacity(0.15),
+                                            borderRadius: BorderRadius.circular(8),
                                           ),
-                                          child: const Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: [
-                                              Icon(
-                                                Icons.play_circle_filled,
-                                                size: 14,
-                                              ),
-                                              SizedBox(width: 2),
-                                              Text(
-                                                'AD',
-                                                style: TextStyle(
-                                                  fontSize: 10,
-                                                  fontWeight: FontWeight.bold,
-                                                ),
-                                              ),
-                                            ],
+                                          child: const Icon(
+                                            Icons.play_arrow_rounded,
+                                            size: 16,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 6),
+                                        const Text(
+                                          'PLAY AGAIN',
+                                          style: TextStyle(
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.bold,
                                           ),
                                         ),
                                       ],
                                     ),
-                                  ),
-                                ),
-                                const SizedBox(height: 12),
-                              ],
-                              SizedBox(
-                                width: double.infinity,
-                                height: 52,
-                                child: ElevatedButton(
-                                  onPressed: widget.onRestart,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.blue[900],
-                                    foregroundColor: Colors.white,
-                                    elevation: 3,
-                                    shadowColor: Colors.blue[900]!.withOpacity(0.5),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(16),
-                                    ),
-                                    padding: const EdgeInsets.symmetric(horizontal: 24),
-                                  ),
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(8),
-                                        decoration: BoxDecoration(
-                                          color: Colors.white.withOpacity(0.15),
-                                          borderRadius: BorderRadius.circular(12),
-                                        ),
-                                        child: const Icon(
-                                          Icons.play_arrow_rounded,
-                                          size: 24,
-                                        ),
-                                      ),
-                                      const SizedBox(width: 12),
-                                      const Text(
-                                        'PLAY AGAIN',
-                                        style: TextStyle(
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.bold,
-                                          letterSpacing: 1.2,
-                                        ),
-                                      ),
-                                    ],
                                   ),
                                 ),
                               ),

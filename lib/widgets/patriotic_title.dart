@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'dart:math' show pi, cos, sin;
 
 class PatrioticTitle extends StatefulWidget {
   final String text;
@@ -52,30 +53,38 @@ class _PatrioticTitleState extends State<PatrioticTitle> with SingleTickerProvid
 
   @override
   Widget build(BuildContext context) {
+    final color = widget.isSecondary ? Colors.blue[900]! : Colors.red[900]!;
+    
     return AnimatedBuilder(
       animation: _controller,
       builder: (context, child) {
         return Transform.scale(
           scale: _scaleAnimation.value,
           child: Stack(
+            alignment: Alignment.center,
             children: [
-              // Shadow layer
-              Text(
-                widget.text,
-                textAlign: TextAlign.center,
-                softWrap: true,
-                overflow: TextOverflow.visible,
-                style: TextStyle(
-                  fontSize: widget.fontSize,
-                  fontFamily: 'RubikBubbles',
-                  fontWeight: FontWeight.bold,
-                  foreground: Paint()
-                    ..style = PaintingStyle.stroke
-                    ..strokeWidth = 8
-                    ..color = widget.isSecondary ? Colors.blue[900]! : Colors.red[700]!,
+              // Create outline effect with multiple offset copies
+              for (var i = 0; i < 360; i += 45)
+                Transform.translate(
+                  offset: Offset(
+                    2.5 * cos(i * pi / 180),
+                    2.5 * sin(i * pi / 180),
+                  ),
+                  child: Text(
+                    widget.text,
+                    textAlign: TextAlign.center,
+                    softWrap: true,
+                    overflow: TextOverflow.visible,
+                    style: TextStyle(
+                      fontSize: widget.fontSize,
+                      fontFamily: 'Impact',
+                      letterSpacing: 1,
+                      height: 1,
+                      color: color,
+                    ),
+                  ),
                 ),
-              ),
-              // Main text layer
+              // White fill layer
               Text(
                 widget.text,
                 textAlign: TextAlign.center,
@@ -83,19 +92,20 @@ class _PatrioticTitleState extends State<PatrioticTitle> with SingleTickerProvid
                 overflow: TextOverflow.visible,
                 style: TextStyle(
                   fontSize: widget.fontSize,
-                  fontFamily: 'RubikBubbles',
-                  fontWeight: FontWeight.bold,
+                  fontFamily: 'Impact',
+                  letterSpacing: 1,
+                  height: 1,
                   color: Colors.white,
                   shadows: [
                     Shadow(
-                      offset: const Offset(3.0, 3.0),
+                      offset: const Offset(2.0, 2.0),
                       blurRadius: 0,
-                      color: widget.isSecondary ? Colors.blue[900]! : Colors.red[700]!,
+                      color: color,
                     ),
                     Shadow(
-                      offset: const Offset(4.0, 4.0),
-                      blurRadius: 2.0,
-                      color: Colors.black.withOpacity(0.3),
+                      offset: const Offset(3.0, 3.0),
+                      blurRadius: 3.0,
+                      color: Colors.black.withOpacity(0.4),
                     ),
                   ],
                 ),

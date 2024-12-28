@@ -11,6 +11,7 @@ class GameMenu extends ConsumerWidget {
   final VoidCallback onFeedback;
   final VoidCallback onRestart;
   final VoidCallback onWhatsNew;
+  final VoidCallback onHowToPlay;
 
   const GameMenu({
     super.key,
@@ -22,6 +23,7 @@ class GameMenu extends ConsumerWidget {
     required this.onFeedback,
     required this.onRestart,
     required this.onWhatsNew,
+    required this.onHowToPlay,
   });
 
   @override
@@ -61,6 +63,14 @@ class GameMenu extends ConsumerWidget {
           child: ListTile(
             leading: Icon(Icons.store, color: Colors.blue),
             title: Text('Store'),
+            contentPadding: EdgeInsets.zero,
+          ),
+        ),
+        const PopupMenuItem<String>(
+          value: 'how_to_play',
+          child: ListTile(
+            leading: Icon(Icons.help_outline, color: Colors.blue),
+            title: Text('How to Play'),
             contentPadding: EdgeInsets.zero,
           ),
         ),
@@ -106,6 +116,9 @@ class GameMenu extends ConsumerWidget {
             break;
           case 'store':
             onStore();
+            break;
+          case 'how_to_play':
+            onHowToPlay();
             break;
           case 'whats_new':
             onWhatsNew();

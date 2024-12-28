@@ -45,7 +45,7 @@ class WhatsNewDialog extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'Version ${entry.version} (${entry.buildNumber})',
+                            'Version ${entry.version}',
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(
                                   fontWeight: FontWeight.bold,
                                   color: Colors.blue,

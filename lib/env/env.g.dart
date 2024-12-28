@@ -32,7 +32,7 @@ final class _Env {
       'ca-app-pub-3940256099942544/5224354917';
 
   static const String testRewardedAdUnitIdIos =
-      'ca-app-pub-3940256099942544/1712485313';
+      'ca-app-pub-3940256099942544/5224354917';
 
   static const String bannerAdUnitIdAndroid =
       'ca-app-pub-2505538993380432/5207541366';
@@ -47,8 +47,8 @@ final class _Env {
       'ca-app-pub-2505538993380432/7989912521';
 
   static const String rewardedAdUnitIdAndroid =
-      'ca-app-pub-2505538993380432/5048301836';
+      'ca-app-pub-2505538993380432/3328327374';
 
   static const String rewardedAdUnitIdIos =
-      'ca-app-pub-2505538993380432/4667090086';
+      'ca-app-pub-2505538993380432/2206817393';
 }

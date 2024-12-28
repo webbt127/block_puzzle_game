@@ -4,6 +4,7 @@ import 'dart:developer' as developer;
 import 'package:block_puzzle_game/screens/main_menu_screen.dart';
 import 'package:block_puzzle_game/screens/settings_screen.dart';
 import 'package:block_puzzle_game/screens/store_screen.dart';
+import 'package:block_puzzle_game/services/store_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 import 'dart:math';
@@ -20,7 +21,6 @@ import '../widgets/block_clear_effect.dart';
 import '../pardon_popup.dart';
 import '../services/ad_service.dart';
 import '../services/games_services.dart';
-import '../services/revenue_cat_service.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:block_puzzle_game/providers/settings_notifier.dart' as settings;
@@ -29,6 +29,8 @@ import '../widgets/game_menu.dart';
 import '../widgets/score_display.dart';
 import 'package:block_puzzle_game/models/game_state.dart';
 import '../widgets/whats_new_dialog.dart';
+import 'package:block_puzzle_game/screens/how_to_play_screen.dart';
+import '../services/logging_service.dart';
 
 const int rows = 8;
 const int columns = 8;
@@ -62,13 +64,36 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   final GlobalKey _gridKey = GlobalKey();
   bool _pardonShownForCurrentStreak = false;
 
+  static Future<void> _log(String message) async {
+    await LoggingService.log('[GameScreen] $message');
+  }
+
   @override
   void initState() {
     super.initState();
+    _log('initState');
     _initializeGame();
     _checkHideAdsStatus();
     // Preload rewarded ad
-    AdService.createRewardedAd();
+    _log('Creating rewarded ad');
+    AdService.loadRewardedAd();
+    // Listen for ad availability changes
+    AdService.addListener(_onAdAvailabilityChanged);
+  }
+
+  @override
+  void dispose() {
+    AdService.removeListener(_onAdAvailabilityChanged);
+    _bannerAd?.dispose();
+    //GridSystem.dispose();
+    super.dispose();
+  }
+
+  void _onAdAvailabilityChanged() {
+    _log('Ad availability changed, rebuilding UI');
+    if (mounted) {
+      setState(() {});
+    }
   }
 
   Future<void> _initializeGame() async {
@@ -79,13 +104,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       cellSize: 40,
     );
 
-    developer.log('Initializing game...');
+    _log('Initializing game...');
 
     // Try to load saved state
     final savedState = await GameState.load();
     
     if (savedState != null) {
-      developer.log('Loaded saved state with score: ${savedState.score} and remaining rerolls: ${savedState.remainingRerolls}');
+      _log('Loaded saved state with score: ${savedState.score} and remaining rerolls: ${savedState.remainingRerolls}');
       setState(() {
         score = savedState.score;
         rerollCount = 3 - savedState.remainingRerolls;
@@ -94,7 +119,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         availablePatterns = BlockPatterns.getPatternsFromSavedState(savedState.patterns);
       });
     } else {
-      developer.log('No saved state found, starting new game');
+      _log('No saved state found, starting new game');
       setState(() {
         score = 0;
         rerollCount = 0;
@@ -109,7 +134,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   Future<void> _saveGameState() async {
-    developer.log('Saving game state... Score: $score, Remaining Rerolls: ${3 - rerollCount}');
+    _log('Saving game state... Score: $score, Remaining Rerolls: ${3 - rerollCount}');
     final state = GameState(
       score: score,
       rerollCount: rerollCount,
@@ -152,32 +177,50 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _handleReroll() {
+    _log('Handle reroll called');
+    _log('hideAds: $_hideAds');
+    _log('hasRewardedAd: ${AdService.hasRewardedAd}');
+    
     if (_hideAds) {
+      _log('User has hideAds, rerolling without ad');
       setState(() {
         rerollCount++;
-        _generateNewPatterns();
+        _generateNewPatterns(afterAd: true);
       });
       
       // Save state after the setState is complete
       unawaited(_saveGameState());
-    } else {
+    } else if (AdService.hasRewardedAd) {
+      _log('Showing rewarded ad for reroll');
       AdService.showRewardedAd(
         onUserEarnedReward: (_, __) {
+          _log('User earned reward, rerolling');
           setState(() {
             rerollCount++;
-            _generateNewPatterns();
+            _generateNewPatterns(afterAd: true);
           });
           
           // Save state after the setState is complete
           unawaited(_saveGameState());
         },
       );
+    } else {
+      _log('No rewarded ad available');
     }
   }
 
   void _resetGame() {
     // Clear saved state first
     GameState.clear();
+
+    // Show interstitial ad if available and ads aren't hidden
+    if (!_hideAds) {
+      if (AdService.hasInterstitialAd) {
+        AdService.showInterstitialAd();
+      }
+      // Preload next interstitial
+      AdService.createInterstitialAd();
+    }
     
     setState(() {
       score = 0;
@@ -200,7 +243,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     if (!_hideAds) {
       _loadBannerAd();
       // Show preloaded interstitial ad
-      if (AdService.interstitialAd != null) {
+      if (AdService.hasInterstitialAd) {
         AdService.showInterstitialAd();
       }
     }
@@ -217,13 +260,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     });
   }
 
-  @override
-  void dispose() {
-    _bannerAd?.dispose();
-    //GridSystem.dispose();
-    super.dispose();
-  }
-
   Future<void> _rateApp() async {
     final Uri url = Platform.isIOS
         ? Uri.parse('https://apps.apple.com/app/6739540042')
@@ -238,7 +274,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     // Check if any possible block pattern could fit on the board
     for (final basePattern in BlockPatterns.allPatterns) {
       final orientations = basePattern.getAllOrientations();
-      developer.log('Checking pattern with ${orientations.length} orientations');
+      _log('Checking pattern with ${orientations.length} orientations');
       // Get all possible orientations of this pattern
       for (final pattern in orientations) {
         for (int row = 0; row < rows; row++) {
@@ -248,14 +284,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               GridPosition(row, col),
               gameBoard,
             )) {
-              developer.log('Found fitting position for pattern at row: $row, col: $col');
+              _log('Found fitting position for pattern at row: $row, col: $col');
               return true;
             }
           }
         }
       }
     }
-    developer.log('No patterns can fit anywhere on the board');
+    _log('No patterns can fit anywhere on the board');
     return false;
   }
 
@@ -264,7 +300,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     for (int i = 0; i < availablePatterns.length; i++) {
       final basePattern = availablePatterns[i];
       final orientations = basePattern.getAllOrientations();
-      developer.log('Checking current pattern with ${orientations.length} orientations');
+      _log('Checking current pattern with ${orientations.length} orientations');
       // Get all possible orientations of this pattern
       for (final pattern in orientations) {
         for (int row = 0; row < rows; row++) {
@@ -276,26 +312,26 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             )) {
               // Replace the original pattern with the working orientation
               availablePatterns[i] = pattern;
-              developer.log('Found fitting position for current pattern at row: $row, col: $col');
+              _log('Found fitting position for current pattern at row: $row, col: $col');
               return true;
             }
           }
         }
       }
     }
-    developer.log('None of the current patterns can fit');
+    _log('None of the current patterns can fit');
     return false;
   }
 
   void _generateNewPatterns({bool afterAd = false}) {
-    developer.log('Generating new patterns, afterAd: $afterAd');
+    _log('Generating new patterns, afterAd: $afterAd');
     
     // First check if any block could possibly fit
     if (afterAd) {
       final canFit = _canAnyBlockFit();
-      developer.log('Can any block fit: $canFit');
+      _log('Can any block fit: $canFit');
       if (!canFit) {
-        developer.log('No blocks can fit, skipping reroll');
+        _log('No blocks can fit, skipping reroll');
         _showGameOverPopup();
         return; // No point in rerolling if no block can fit
       }
@@ -311,15 +347,15 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         });
         
         foundValidPattern = _canCurrentPatternsfit(); // This will also set the correct orientation
-        developer.log('Attempt $attempts: Found valid pattern: $foundValidPattern');
+        _log('Attempt $attempts: Found valid pattern: $foundValidPattern');
         attempts++;
       }
 
-      developer.log('Finished rerolling after $attempts attempts. Found valid pattern: $foundValidPattern');
+      _log('Finished rerolling after $attempts attempts. Found valid pattern: $foundValidPattern');
       
       // If we couldn't find a valid pattern after max attempts, show game over
       if (!foundValidPattern) {
-        developer.log('Could not find valid pattern after $maxAttempts attempts');
+        _log('Could not find valid pattern after $maxAttempts attempts');
         _showGameOverPopup();
       }
     } else {
@@ -386,24 +422,32 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           finalScore: score,
           debugMode: kDebugMode, // Pass debug mode to popup
           initialHighScore: highScore, // Pass the high score
+          hideAds: _hideAds,
           rerollsRemaining: canReroll ? 3 - rerollCount : 0,
           onReroll: (canReroll && rerollCount < 3) ? () async {
-            if (AdService.rewardedAd == null) {
+            if (!AdService.canShowRewardedAd(_hideAds)) {
               // If no ad is loaded, create one and wait a moment
-              AdService.createRewardedAd();
+              await AdService.loadRewardedAd();
               await Future.delayed(const Duration(milliseconds: 500));
             }
-            // Show the ad if it's loaded
-            AdService.showRewardedAd(
-              onUserEarnedReward: (Ad ad, RewardItem reward) {
-                developer.log('Reward earned, triggering reroll');
-                setState(() {
-                  rerollCount++;
-                  _generateNewPatterns(afterAd: true);
-                });
-                Navigator.of(context).pop(); // Dismiss the game over popup
-              },
-            );
+            if (!_hideAds && AdService.hasRewardedAd) {
+              AdService.showRewardedAd(
+                onUserEarnedReward: (Ad ad, RewardItem reward) {
+                  _log('Reward earned, triggering reroll');
+                  setState(() {
+                    rerollCount++;
+                    _generateNewPatterns(afterAd: true);
+                  });
+                  Navigator.of(context).pop(); // Dismiss the game over popup
+                },
+              );
+            } else {
+              setState(() {
+                rerollCount++;
+                _generateNewPatterns(afterAd: true);
+              });
+              Navigator.of(context).pop(); // Dismiss the game over popup
+            }
           } : null,
           onRestart: () {
             // Play feedback
@@ -475,8 +519,20 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         // Update score
         final totalClears = rowsToClear.length + colsToClear.length;
         consecutiveClears++;
-        final multiplier = min(consecutiveClears, 5); // Cap multiplier at 5x
-        score += totalClears * 100 * multiplier; // Base score: 100 points per line
+
+        // Calculate multiplier based on consecutive clears
+        double streakMultiplier = 1.0;
+        if (consecutiveClears >= 3) {
+          streakMultiplier = 2.0;
+        } else if (consecutiveClears == 2) {
+          streakMultiplier = 1.5;
+        }
+
+        // Calculate multiplier based on number of lines cleared in this move
+        double linesMultiplier = totalClears.toDouble() * totalClears.toDouble(); // Square of lines cleared
+
+        final double totalMultiplier = streakMultiplier * linesMultiplier;
+        score += (100 * totalMultiplier).toInt(); // Base score: 100 points per line
 
         // Check conditions for showing pardon popup
         if (!_pardonShownForCurrentStreak && 
@@ -661,48 +717,72 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   Widget _buildRerollButton() {
-    if (rerollCount >= 3) return const SizedBox.shrink();
+    final bool canReroll = rerollCount < 3 && (_hideAds || AdService.hasRewardedAd);
     
-    final bool isAdAvailable = _hideAds || AdService.rewardedAd != null;
-    final remainingRerolls = isAdAvailable ? (3 - rerollCount) : 0;
+    if (!canReroll) return const SizedBox.shrink();
     
-    return Padding(
-      padding: const EdgeInsets.only(right: 8.0),
-      child: Container(
-        decoration: BoxDecoration(
-          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+    return Container(
+      width: 80,
+      margin: const EdgeInsets.only(right: 16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
           borderRadius: BorderRadius.circular(8),
-        ),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            borderRadius: BorderRadius.circular(8),
-            onTap: (rerollCount < 3 && isAdAvailable) ? _handleReroll : null,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.refresh,
-                    size: 20,
-                    color: (rerollCount < 3 && isAdAvailable)
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).disabledColor,
+          onTap: _handleReroll,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  Icons.refresh,
+                  size: 36,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '(${3 - rerollCount})',
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '$remainingRerolls',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: (rerollCount < 3 && isAdAvailable)
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).disabledColor,
+                ),
+                if (!_hideAds && AdService.hasRewardedAd) ...[
+                  const SizedBox(height: 2),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 4,
+                      vertical: 1,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
+                      borderRadius: BorderRadius.circular(3),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.play_circle_filled,
+                          size: 8,
+                        ),
+                        SizedBox(width: 1),
+                        Text(
+                          'AD',
+                          style: TextStyle(
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
-              ),
+              ],
             ),
           ),
         ),
@@ -714,6 +794,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     showDialog(
       context: context,
       builder: (context) => const WhatsNewDialog(),
+    );
+  }
+
+  void _showHowToPlay() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => const HowToPlayScreen(),
+      ),
     );
   }
 
@@ -760,6 +848,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             },
             onRestart: _resetGame,
             onWhatsNew: _showWhatsNew,
+            onHowToPlay: _showHowToPlay,
           ),
           actions: [
             ScoreDisplay(
@@ -969,44 +1058,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     child: Row(
                       children: [
                         // Reroll button
-                        Container(
-                          width: 60,
-                          margin: const EdgeInsets.only(right: 16),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Material(
-                            color: Colors.transparent,
-                            child: InkWell(
-                              borderRadius: BorderRadius.circular(8),
-                              onTap: rerollCount < 3 ? _handleReroll : null,
-                              child: Column(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.refresh,
-                                    size: 24,
-                                    color: rerollCount < 3 
-                                      ? Theme.of(context).colorScheme.primary
-                                      : Theme.of(context).disabledColor,
-                                  ),
-                                  const SizedBox(height: 4),
-                                  Text(
-                                    '${3 - rerollCount}',
-                                    style: TextStyle(
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                      color: rerollCount < 3 
-                                        ? Theme.of(context).colorScheme.primary
-                                        : Theme.of(context).disabledColor,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
+                        _buildRerollButton(),
                         // Available blocks with original layout
                         Expanded(
                           child: LayoutBuilder(

@@ -127,7 +127,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
                       );
                     },
                     child: Text(
-                      'Version $version ($buildNumber)',
+                      'Version $version',
                       textAlign: TextAlign.center,
                       style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                             color: Colors.grey[600],
@@ -144,7 +144,7 @@ class _AboutScreenState extends ConsumerState<AboutScreen> {
               [
                 _buildLink(
                   'Contact Support',
-                  'mailto:support@app-architects.com?subject=Block Blast - Stars %26 Stripes v$version ($buildNumber) - ${Platform.isIOS ? 'iOS' : 'Android'}',
+                  'mailto:support@app-architects.com?subject=Block Blast - Stars %26 Stripes v$version - ${Platform.isIOS ? 'iOS' : 'Android'}',
                 ),
               ],
             ),
