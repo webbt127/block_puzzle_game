@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:io';
 import 'dart:developer' as developer;
+import 'package:block_puzzle_game/providers/score_provider.dart';
 import 'package:block_puzzle_game/screens/main_menu_screen.dart';
 import 'package:block_puzzle_game/screens/settings_screen.dart';
 import 'package:block_puzzle_game/screens/store_screen.dart';
