@@ -26,6 +26,7 @@ import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:block_puzzle_game/providers/settings_notifier.dart' as settings;
 import '../services/analytics_service.dart';
 import '../services/score_service.dart';
+import '../services/game_save_service.dart';
 import '../widgets/game_menu.dart';
 import '../widgets/score_display.dart';
 import 'package:block_puzzle_game/models/game_state.dart';
@@ -106,7 +107,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     _log('Initializing game...');
 
     // Try to load saved state
-    final savedState = await GameState.load();
+    final savedState = await GameSaveService.loadGame();
     
     if (savedState != null) {
       _log('Loaded saved state with score: ${savedState.score} and remaining rerolls: ${savedState.remainingRerolls}');
@@ -133,16 +134,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   Future<void> _saveGameState() async {
-    _log('Saving game state... Score: $score, Remaining Rerolls: ${3 - rerollCount}');
-    final state = GameState(
-      score: score,
-      rerollCount: rerollCount,
-      consecutiveClears: consecutiveClears,
+    _log('Saving game state... Score: ${ScoreService.score}, Remaining Rerolls: ${3 - rerollCount}');
+    await GameSaveService.saveGame(
       gameBoard: gameBoard,
-      patterns: BlockPatterns.getSavedStateFromPatterns(availablePatterns),
-      remainingRerolls: 3 - rerollCount,
+      availablePatterns: availablePatterns,
+      rerollCount: rerollCount,
     );
-    await state.save();
   }
 
   void _handlePatternPlacement(BlockPattern pattern, GridPosition position) {
@@ -210,7 +207,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   void _resetGame() {
     // Clear saved state first
-    GameState.clear();
+    await GameSaveService.clearSavedGame();
 
     // Show interstitial ad if available and ads aren't hidden
     if (!_hideAds) {
