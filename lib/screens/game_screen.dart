@@ -325,7 +325,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     if (!mounted) return;
 
     // Check if rerolls would even help
-    final canReroll = _canAnyBlockFit();
+    final canReroll = PatternService.canAnyBlockFit(
+      gameBoard: gameBoard,
+      gridSystem: gridSystem,
+      rows: rows,
+      columns: columns,
+    );
     
     showDialog(
       context: context,
