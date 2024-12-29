@@ -5,6 +5,7 @@ import 'package:block_puzzle_game/providers/score_provider.dart';
 import 'package:block_puzzle_game/screens/main_menu_screen.dart';
 import 'package:block_puzzle_game/screens/settings_screen.dart';
 import 'package:block_puzzle_game/screens/store_screen.dart';
+import 'package:block_puzzle_game/services/pattern_service.dart';
 import 'package:block_puzzle_game/services/store_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
