@@ -31,6 +31,7 @@ import '../services/analytics_service.dart';
 import '../services/score_service.dart';
 import '../services/game_save_service.dart';
 import '../widgets/game_menu.dart';
+import '../widgets/reroll_button.dart';
 import '../widgets/score_display.dart';
 import '../widgets/whats_new_dialog.dart';
 import 'package:block_puzzle_game/screens/how_to_play_screen.dart';
@@ -571,79 +572,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     _updatePotentialClears();
   }
 
-  Widget _buildRerollButton() {
-    final bool canReroll = rerollCount < 3 && (_hideAds || AdService.hasRewardedAd);
-    
-    if (!canReroll) return const SizedBox.shrink();
-    
-    return Container(
-      width: 80,
-      margin: const EdgeInsets.only(right: 16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(8),
-          onTap: _handleReroll,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  Icons.refresh,
-                  size: 36,
-                  color: Theme.of(context).colorScheme.primary,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '(${3 - rerollCount})',
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                ),
-                if (!_hideAds && AdService.hasRewardedAd) ...[
-                  const SizedBox(height: 2),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 4,
-                      vertical: 1,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.15),
-                      borderRadius: BorderRadius.circular(3),
-                    ),
-                    child: const Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          Icons.play_circle_filled,
-                          size: 8,
-                        ),
-                        SizedBox(width: 1),
-                        Text(
-                          'AD',
-                          style: TextStyle(
-                            fontSize: 8,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
-  }
 
   void _showWhatsNew() {
     showDialog(
@@ -906,7 +834,11 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                     child: Row(
                       children: [
                         // Reroll button
-                        _buildRerollButton(),
+                        RerollButton(
+                          rerollCount: rerollCount,
+                          hideAds: _hideAds,
+                          onReroll: _handleReroll,
+                        ),
                         // Available blocks with original layout
                         Expanded(
                           child: LayoutBuilder(
