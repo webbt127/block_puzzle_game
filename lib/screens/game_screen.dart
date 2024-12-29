@@ -25,6 +25,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:block_puzzle_game/providers/settings_notifier.dart' as settings;
 import '../services/analytics_service.dart';
+import '../services/score_service.dart';
 import '../widgets/game_menu.dart';
 import '../widgets/score_display.dart';
 import 'package:block_puzzle_game/models/game_state.dart';
@@ -44,9 +45,7 @@ class GameScreen extends ConsumerStatefulWidget {
 
 class _GameScreenState extends ConsumerState<GameScreen> {
   late GridSystem gridSystem;
-  int score = 0;
   int rerollCount = 0;
-  int consecutiveClears = 0;
   List<List<bool>> gameBoard = List.generate(
     rows,
     (i) => List.generate(columns, (j) => false),
@@ -112,18 +111,18 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     if (savedState != null) {
       _log('Loaded saved state with score: ${savedState.score} and remaining rerolls: ${savedState.remainingRerolls}');
       setState(() {
-        score = savedState.score;
+        ScoreService.reset();
+        ScoreService.addBlockScore(savedState.score ~/ 10); // Approximate block score
+        ScoreService.processLineClears(savedState.consecutiveClears); // Restore consecutive clears
         rerollCount = 3 - savedState.remainingRerolls;
-        consecutiveClears = savedState.consecutiveClears;
         gameBoard = savedState.gameBoard;
         availablePatterns = BlockPatterns.getPatternsFromSavedState(savedState.patterns);
       });
     } else {
       _log('No saved state found, starting new game');
       setState(() {
-        score = 0;
+        ScoreService.reset();
         rerollCount = 0;
-        consecutiveClears = 0;
         gameBoard = List.generate(
           rows,
           (i) => List.generate(columns, (j) => false),
@@ -150,12 +149,12 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     setState(() {
       gridSystem.placeBlockPattern(pattern, position, gameBoard);
       
-      // Calculate score
-      final blockScore = pattern.shape
+      // Add score for block placement
+      final blockSize = pattern.shape
           .expand((row) => row)
           .where((cell) => cell)
-          .length * 10;
-      score += blockScore;
+          .length;
+      ScoreService.addBlockScore(blockSize);
       
       // Remove used pattern
       availablePatterns.remove(pattern);
@@ -391,20 +390,15 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _showGameOverPopup() async {
-    // Submit score to leaderboard
-    await GameServicesService.submitScore(score);
+    // Submit score and get high score
+    await ScoreService.submitScore();
+    final highScore = await ScoreService.getHighScore();
     
     // Log game over analytics
     AnalyticsService.logEvent('game_over', properties: {
-      'score': score,
-      'consecutive_clears': consecutiveClears,
+      'score': ScoreService.score,
+      'consecutive_clears': ScoreService.consecutiveClears,
     });
-    
-    // Get high score before showing popup
-    int? highScore;
-    if (await GameServicesService.isSignedIn()) {
-      highScore = await GameServicesService.getHighScore();
-    }
 
     // Add delay before showing popup
     await Future.delayed(const Duration(seconds: 3));
@@ -419,7 +413,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       barrierDismissible: kDebugMode, // Allow dismissing in debug mode
       builder: (BuildContext context) {
         return GameOverPopup(
-          finalScore: score,
+          finalScore: ScoreService.score,
           debugMode: kDebugMode, // Pass debug mode to popup
           initialHighScore: highScore, // Pass the high score
           hideAds: _hideAds,
@@ -460,8 +454,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 rows,
                 (i) => List.generate(columns, (j) => false),
               );
-              score = 0;
-              consecutiveClears = 0;
+              ScoreService.reset();
               rerollCount = 0;  // Reset reroll count
               _generateNewPatterns();
             });
@@ -516,23 +509,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           }
         }
 
-        // Update score
+        // Process line clears and update score
         final totalClears = rowsToClear.length + colsToClear.length;
-        consecutiveClears++;
-
-        // Calculate multiplier based on consecutive clears
-        double streakMultiplier = 1.0;
-        if (consecutiveClears >= 3) {
-          streakMultiplier = 2.0;
-        } else if (consecutiveClears == 2) {
-          streakMultiplier = 1.5;
-        }
-
-        // Calculate multiplier based on number of lines cleared in this move
-        double linesMultiplier = totalClears.toDouble() * totalClears.toDouble(); // Square of lines cleared
-
-        final double totalMultiplier = streakMultiplier * linesMultiplier;
-        score += (100 * totalMultiplier).toInt(); // Base score: 100 points per line
+        ScoreService.processLineClears(totalClears);
 
         // Check conditions for showing pardon popup
         if (!_pardonShownForCurrentStreak && 
@@ -852,7 +831,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           ),
           actions: [
             ScoreDisplay(
-              score: score,
+              score: ScoreService.score,
               onScoreChanged: (newScore) {
                 setState(() {
                   score = newScore;
