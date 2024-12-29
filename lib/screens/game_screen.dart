@@ -207,7 +207,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   void _resetGame() {
     // Clear saved state first
-    await GameSaveService.clearSavedGame();
+    GameSaveService.clearSavedGame();
 
     // Show interstitial ad if available and ads aren't hidden
     if (!_hideAds) {

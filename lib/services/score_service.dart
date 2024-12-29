@@ -30,17 +30,10 @@ class ScoreService {
       }
 
       // Calculate multiplier based on number of lines cleared in this move
-      double linesMultiplier = totalClears * totalClears; // Square of lines cleared
+      double linesMultiplier = totalClears.toDouble() * totalClears.toDouble(); // Square of lines cleared
 
       final double totalMultiplier = streakMultiplier * linesMultiplier;
       _score += (100 * totalMultiplier).toInt(); // Base score: 100 points per line
-
-      // Log analytics for line clears
-      AnalyticsService.logEvent('line_clear', properties: {
-        'total_clears': totalClears,
-        'consecutive_clears': _consecutiveClears,
-        'score': _score,
-      });
     } else {
       _consecutiveClears = 0;
     }
