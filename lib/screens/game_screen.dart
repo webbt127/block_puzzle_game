@@ -826,12 +826,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             onHowToPlay: _showHowToPlay,
           ),
           actions: [
-            ScoreDisplay(
-              score: ScoreService.score,
-              onScoreChanged: (newScore) {
-                // Score is managed by ScoreService, no need to set state
-              },
-            ),
+            const ScoreDisplay(),
           ],
         ),
         body: SafeArea(
