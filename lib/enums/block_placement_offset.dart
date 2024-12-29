@@ -1,8 +1,8 @@
 enum BlockPlacementOffset {
   none(0, 'None'),
   low(40, 'Low'),
-  medium(80, 'Medium'),
-  high(120, 'High');
+  medium(70, 'Medium'),
+  high(100, 'High');
 
   final int value;
   final String label;

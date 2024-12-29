@@ -289,3 +289,9 @@
 
 # 2024-12-29 14:50:59.633106
 +/git add .
+
+# 2024-12-29 15:48:14.577075
++Lets try making the user input area for dragging placement slightly larger. Placing blocks on the bottom row of the grid with a high offset is currently a little off and I'd like to fix it
+
+# 2024-12-29 15:50:29.824716
++/undo
