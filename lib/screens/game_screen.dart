@@ -564,7 +564,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         'pattern_size': pattern.shape.expand((row) => row).where((cell) => cell).length,
         'row': row,
         'col': col,
-        'current_score': score,
+        'current_score': ScoreService.score,
       });
       
       setState(() {
@@ -829,9 +829,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             ScoreDisplay(
               score: ScoreService.score,
               onScoreChanged: (newScore) {
-                setState(() {
-                  score = newScore;
-                });
+                // Score is managed by ScoreService, no need to set state
               },
             ),
           ],
