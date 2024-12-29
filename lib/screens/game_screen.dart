@@ -72,6 +72,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void initState() {
     super.initState();
     _log('initState');
+    // Initialize ScoreService with the score notifier
+    ScoreService.initialize(ref.read(scoreProvider.notifier));
     _initializeGame();
     _checkHideAdsStatus();
     // Preload rewarded ad

@@ -13,8 +13,15 @@ class ScoreService {
     _consecutiveClears = 0;
   }
 
+  static late ScoreNotifier _scoreNotifier;
+  
+  static void initialize(ScoreNotifier notifier) {
+    _scoreNotifier = notifier;
+  }
+
   static void addBlockScore(int blockSize) {
     _score += blockSize * 10;
+    _scoreNotifier.updateScore();
   }
 
   static void processLineClears(int totalClears) {
@@ -34,6 +41,7 @@ class ScoreService {
 
       final double totalMultiplier = streakMultiplier * linesMultiplier;
       _score += (100 * totalMultiplier).toInt(); // Base score: 100 points per line
+      _scoreNotifier.updateScore();
     } else {
       _consecutiveClears = 0;
     }
