@@ -11,13 +11,7 @@ class ScoreDisplay extends ConsumerWidget {
   });
 
   @override
-  ConsumerState<ScoreDisplay> createState() => _ScoreDisplayState();
-}
-
-class _ScoreDisplayState extends ConsumerState<ScoreDisplay> {
-
-  @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     return Container(
       height: kToolbarHeight,
       padding: const EdgeInsets.only(right: 16.0),
