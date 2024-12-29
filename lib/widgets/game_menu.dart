@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../providers/feedback_providers.dart';
+import '../services/score_service.dart';
 
 class GameMenu extends ConsumerWidget {
   final VoidCallback onHome;
@@ -106,6 +107,7 @@ class GameMenu extends ConsumerWidget {
         // Then handle the menu selection
         switch (value) {
           case 'restart':
+            ScoreService.reset();
             onRestart();
             break;
           case 'home':

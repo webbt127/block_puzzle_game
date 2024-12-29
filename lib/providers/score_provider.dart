@@ -14,4 +14,8 @@ class ScoreNotifier extends StateNotifier<int> {
   void updateScore() {
     state = ScoreService.score;
   }
+
+  void reset() {
+    state = 0;
+  }
 }

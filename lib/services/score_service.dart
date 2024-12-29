@@ -12,6 +12,7 @@ class ScoreService {
   static void reset() {
     _score = 0;
     _consecutiveClears = 0;
+    _scoreNotifier.reset();
   }
 
   static late ScoreNotifier _scoreNotifier;
