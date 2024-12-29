@@ -219,9 +219,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     }
     
     setState(() {
-      score = 0;
+      ScoreService.reset();
       rerollCount = 0;
-      consecutiveClears = 0;
       gameBoard = List.generate(
         rows,
         (i) => List.generate(columns, (j) => false),
@@ -512,7 +511,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
         // Check conditions for showing pardon popup
         if (!_pardonShownForCurrentStreak && 
-            (totalClears > 1 || consecutiveClears >= 3)) {
+            (totalClears > 1 || ScoreService.consecutiveClears >= 3)) {
           _pardonShownForCurrentStreak = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             showDialog(
@@ -529,7 +528,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       // Save state after clearing lines
       unawaited(_saveGameState());
     } else {
-      consecutiveClears = 0;
+      ScoreService.processLineClears(0); // Reset consecutive clears
       _pardonShownForCurrentStreak = false;
     }
   }
@@ -570,7 +569,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       
       setState(() {
         gridSystem.placeBlockPattern(pattern, GridPosition(row, col), gameBoard);
-        score += pattern.shape.expand((row) => row).where((cell) => cell).length * 10;
+        ScoreService.addBlockScore(pattern.shape.expand((row) => row).where((cell) => cell).length);
         _checkAndClearLines();
         
         availablePatterns.remove(pattern);
