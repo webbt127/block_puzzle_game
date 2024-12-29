@@ -1,0 +1,291 @@
+
+# 2024-12-29 10:41:13.914062
++y
+
+# 2024-12-29 10:41:28.515740
++n
+
+# 2024-12-29 10:43:23.409907
++y
+
+# 2024-12-29 10:45:45.380090
++n
+
+# 2024-12-29 10:48:19.466476
++/add lib/screens/game_screen.dart
+
+# 2024-12-29 10:48:57.376904
++/add lib/services/score_service.dart
+
+# 2024-12-29 10:49:01.162766
++y
+
+# 2024-12-29 10:50:06.195587
++I want to extract anything scoring related from the game screen and have it in the score service instead to declutter the app
+
+# 2024-12-29 10:53:09.978506
++/add lib/services/game_save_service.dart
+
+# 2024-12-29 10:53:11.354950
++y
+
+# 2024-12-29 10:54:18.839277
++Theres some errors around the game save logic, lets also extract this into its own module and update references
+
+# 2024-12-29 10:57:52.016936
++the score and `consecutiveClears`
+
+# 2024-12-29 10:59:03.632680
++the score and consecutiveClears variables are undefined, help me fix them
+
+# 2024-12-29 11:00:05.365520
++the score and consecutiveClears variables are still undefined in `GameScreen`
+
+# 2024-12-29 11:01:29.743642
++/add lib/widgets/score_display.dart
+
+# 2024-12-29 11:02:03.520637
++Lets have score display and score service interface directly instead of using game screen as a middle man
+
+# 2024-12-29 11:09:58.215403
++The scoredisplay isn't updating after each move
+
+# 2024-12-29 11:12:37.009252
++It works now, but I see its updated on a 100ms timer. Would it be possible to use riverpod to monitor and update the state instead?
+
+# 2024-12-29 11:13:03.323285
++y
+
+# 2024-12-29 11:17:00.458220
++We're missing a few things in the score display to work properly with riverpod, help me finish correcting it
+
+# 2024-12-29 11:28:54.921234
++Great! Lets extract anything related to patterns and placement into its own module as well from the game screen
+
+# 2024-12-29 11:29:32.465507
++y
+
+# 2024-12-29 11:31:44.480756
++Theres still some methods related to patterns remaining in the game screen that could be moved over to the new service
+
+# 2024-12-29 11:56:51.330269
++I still want to extract as much game logic as possible from the game screen, help me continue to do that
+
+# 2024-12-29 11:57:44.564865
++y
+
+# 2024-12-29 12:02:53.277717
++Lets extract the reroll button from the game screen into its own widget
+
+# 2024-12-29 12:03:59.582011
++y
+
+# 2024-12-29 12:08:58.680833
++Anything related to the clearing logic should also be included in the new game logic module
+
+# 2024-12-29 12:11:41.939363
++I want to move anything related to dragging and placement from game screen to its own module
+
+# 2024-12-29 12:13:13.364555
++y
+
+# 2024-12-29 12:47:15.378903
++I want my primary state management solution to be riverpod. Is there anything in the game screen thats using another provider that we could migrate?
+
+# 2024-12-29 13:15:04.901869
++/add drag
+
+# 2024-12-29 13:15:10.302594
++n
+
+# 2024-12-29 13:15:14.986580
++/add lib/services/drag_service.dart
+
+# 2024-12-29 13:18:16.348739
++I need to improve the dragging on the screen. Placing blocks that are primarily horizontal on the bottom row is difficult due to where the detection area for placement is. Its mostly prevelant when the offset setting is set to high, which is used to prevent the users finger from covering the block while placing. Help me improve this system.
+
+# 2024-12-29 13:23:17.646315
++/add lib/screens/game_screen.dart
+
+# 2024-12-29 13:23:53.057413
++The placement preview no longer works, please help me make sure the preview and placement are aligned
+
+# 2024-12-29 13:25:19.573885
++/undo
+
+# 2024-12-29 13:27:58.637753
++The placement preview stopped working, help me restore it
+
+# 2024-12-29 13:30:30.488275
++/undo
+
+# 2024-12-29 13:30:46.557650
++/add lib/services/pattern_service.dart
+
+# 2024-12-29 13:30:49.185224
++The placement preview stopped working, help me restore it
+
+# 2024-12-29 13:32:35.134456
++The placement preview is working now, but it needs to be aligned with the floating block, rather than the user's touch position
+
+# 2024-12-29 13:34:25.672134
++Right now, the preview is 2 grid squares left and 1 grid square down from the dragged block
+
+# 2024-12-29 13:36:03.027528
++/add lib/grid_system.dart
+
+# 2024-12-29 13:36:27.855570
++The alignment of the dragged block and the preview still isn't correct, help me fix it
+
+# 2024-12-29 13:38:24.385202
++The dragging and preview system still isn't working. Lets rewrite this logic so that its easier to modify in the future.
+
+# 2024-12-29 13:40:22.292126
++There's some variables and methods in the game screen that are now undefined, help me fix them
+
+# 2024-12-29 13:41:46.060888
++There's still errors on game screen that need to be fixed
+
+# 2024-12-29 13:43:39.298129
++Theres still a few variables used in the game screen that don't exist in the `DragService`
+
+# 2024-12-29 13:45:57.790876
++onLeave and onMove are undefined for DragTarget in game screen
+
+# 2024-12-29 13:46:44.208482
++The getter 'previewPosition' isn't defined for the type 'DragService'.
+
+# 2024-12-29 13:47:57.909568
++There's still more references to previewPosition and previewPattern in game screen that need to be cleaned up
+
+# 2024-12-29 13:50:25.088058
++/undo
+
+# 2024-12-29 13:52:22.155469
++/add lib/grid_system.dart
+
+# 2024-12-29 13:52:32.181582
++/add lib/screens/game_screen.dart
+
+# 2024-12-29 13:52:40.149212
++/add lib/services/drag_service.dart
+
+# 2024-12-29 13:53:06.182968
++The placement preview no longer works, help me fix it
+
+# 2024-12-29 13:54:44.935247
++The preview is one grid square low currently
+
+# 2024-12-29 13:57:26.015614
++/undo
+
+# 2024-12-29 13:57:45.973560
++The preview is one grid square low currently, it should be closely aligned with the dragged block
+
+# 2024-12-29 14:01:01.148478
++This is close, but still not quite right. The preview is essentially a copy of the dragged block that snaps to the grid. Theres an offset setting that makes it so that the dragged block and preview aren't occluded by the user's finger. Help me make the necessary corrections.
+
+# 2024-12-29 14:02:50.854270
++The preview still doesn't align with the floating block, its about one grid square low
+
+# 2024-12-29 14:03:58.927514
++Wrong way, the preview is below the floating block
+
+# 2024-12-29 14:05:32.501609
++The preview is still off by about half of a grid square now
+
+# 2024-12-29 14:06:39.942245
++The preview is still about half of a grid square lower than it should be
+
+# 2024-12-29 14:08:03.390192
++/undo
+
+# 2024-12-29 14:08:38.133982
++/git reset --hard HEAD^
+
+# 2024-12-29 14:09:23.146228
++/undo
+
+# 2024-12-29 14:09:29.640501
++/git reset --hard HEAD^
+
+# 2024-12-29 14:11:53.133391
++I want to move anything related to dragging and placement from game screen to its own module. Be careful not to break the existing functionality.
+
+# 2024-12-29 14:12:49.814347
++y
+
+# 2024-12-29 14:15:05.092284
++Lets eliminate the context dependency in the grid system, I want to primarily use riverpod for state management
+
+# 2024-12-29 14:15:43.416725
++y
+
+# 2024-12-29 14:17:40.362332
++We need to update some of the references in `GridSystem`
+
+# 2024-12-29 14:18:20.178124
++y
+
+# 2024-12-29 14:20:12.755347
++We need to update some of the references in `GridOverlay`
+
+# 2024-12-29 14:22:39.716501
++_getGridRenderBox() is undefined in `GridSystem`
+
+# 2024-12-29 14:26:29.964486
++This is pretty good but the preview is nowhere near the floating block, the preview is supposed to be the grid snapped version of the floating block
+
+# 2024-12-29 14:28:21.069669
++I don't like that DragHandlerService is dependant on context, we should be using riverpod wherever possible
+
+# 2024-12-29 14:29:17.911989
++y
+
+# 2024-12-29 14:33:21.344128
++The preview doesn't seem to be working now
+
+# 2024-12-29 14:34:06.522500
++/undo
+
+# 2024-12-29 14:35:06.567392
++/git reset --hard HEAD^
+
+# 2024-12-29 14:36:32.930453
++/undo
+
+# 2024-12-29 14:40:39.881100
++/git reset --hard HEAD^
+
+# 2024-12-29 14:40:48.880554
++/undo
+
+# 2024-12-29 14:40:57.633488
++/git reset --hard HEAD^
+
+# 2024-12-29 14:41:14.298475
++/undo
+
+# 2024-12-29 14:41:16.293439
++/git reset --hard HEAD^
+
+# 2024-12-29 14:44:31.148667
++Lets eliminate the context dependency in the grid system, I want to primarily use riverpod for state management
+
+# 2024-12-29 14:45:26.689726
++y
+
+# 2024-12-29 14:46:54.275529
++/undo
+
+# 2024-12-29 14:47:37.479442
++/git reset --hard HEAD^
+
+# 2024-12-29 14:50:35.618696
++/help
+
+# 2024-12-29 14:50:46.945546
++/git commit
+
+# 2024-12-29 14:50:59.633106
++/git add .

@@ -1,3 +1,4 @@
+import 'package:block_puzzle_game/providers/score_provider.dart';
 import 'package:block_puzzle_game/services/analytics_service.dart';
 import 'package:block_puzzle_game/services/games_services.dart';
 

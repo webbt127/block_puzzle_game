@@ -27,30 +27,6 @@ class PatternService {
     }
     return false;
   }
-  static bool canAnyBlockFit({
-    required List<List<bool>> gameBoard,
-    required GridSystem gridSystem,
-    required int rows,
-    required int columns,
-  }) {
-    for (final basePattern in BlockPatterns.allPatterns) {
-      final orientations = basePattern.getAllOrientations();
-      for (final pattern in orientations) {
-        for (int row = 0; row < rows; row++) {
-          for (int col = 0; col < columns; col++) {
-            if (gridSystem.canPlacePattern(
-              pattern,
-              GridPosition(row, col),
-              gameBoard,
-            )) {
-              return true;
-            }
-          }
-        }
-      }
-    }
-    return false;
-  }
 
   static bool canCurrentPatternsfit({
     required List<BlockPattern> availablePatterns,
