@@ -148,14 +148,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   void _handlePatternPlacement(BlockPattern pattern, GridPosition position) {
     setState(() {
-      gridSystem.placeBlockPattern(pattern, position, gameBoard);
-      
-      // Add score for block placement
-      final blockSize = pattern.shape
-          .expand((row) => row)
-          .where((cell) => cell)
-          .length;
-      ScoreService.addBlockScore(blockSize);
+      GameService.placePattern(pattern, position, gameBoard, gridSystem);
       
       // Remove used pattern
       availablePatterns.remove(pattern);
@@ -225,10 +218,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     setState(() {
       ScoreService.reset();
       rerollCount = 0;
-      gameBoard = List.generate(
-        rows,
-        (i) => List.generate(columns, (j) => false),
-      );
+      gameBoard = GameService.createEmptyBoard(rows, columns);
       _generateNewPatterns();
     });
   }
@@ -391,54 +381,15 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _checkAndClearLines() {
-    List<int> rowsToClear = [];
-    List<int> colsToClear = [];
-
-    // Check rows
-    for (int i = 0; i < rows; i++) {
-      bool rowFull = true;
-      for (int j = 0; j < columns; j++) {
-        if (!gameBoard[i][j]) {
-          rowFull = false;
-          break;
-        }
-      }
-      if (rowFull) rowsToClear.add(i);
-    }
-
-    // Check columns
-    for (int j = 0; j < columns; j++) {
-      bool colFull = true;
-      for (int i = 0; i < rows; i++) {
-        if (!gameBoard[i][j]) {
-          colFull = false;
-          break;
-        }
-      }
-      if (colFull) colsToClear.add(j);
-    }
+    final rowsToClear = GameService.findFullRows(gameBoard, rows, columns);
+    final colsToClear = GameService.findFullColumns(gameBoard, rows, columns);
 
     if (rowsToClear.isNotEmpty || colsToClear.isNotEmpty) {
       setState(() {
-        // Clear rows
-        for (int row in rowsToClear) {
-          for (int j = 0; j < columns; j++) {
-            gameBoard[row][j] = false;
-          }
-        }
-
-        // Clear columns
-        for (int col in colsToClear) {
-          for (int i = 0; i < rows; i++) {
-            gameBoard[i][col] = false;
-          }
-        }
-
-        // Process line clears and update score
-        final totalClears = rowsToClear.length + colsToClear.length;
-        ScoreService.processLineClears(totalClears);
+        GameService.clearLines(rowsToClear, colsToClear, gameBoard, columns, rows);
 
         // Check conditions for showing pardon popup
+        final totalClears = rowsToClear.length + colsToClear.length;
         if (!_pardonShownForCurrentStreak && 
             (totalClears > 1 || ScoreService.consecutiveClears >= 3)) {
           _pardonShownForCurrentStreak = true;
