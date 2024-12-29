@@ -67,4 +67,21 @@ class GameService {
       (i) => List.generate(columns, (j) => false),
     );
   }
+
+  static void checkAndClearLines({
+    required List<List<bool>> gameBoard,
+    required int rows,
+    required int columns,
+    required Function(List<int>, List<int>) onLinesCleared,
+  }) {
+    final rowsToClear = findFullRows(gameBoard, rows, columns);
+    final colsToClear = findFullColumns(gameBoard, rows, columns);
+
+    if (rowsToClear.isNotEmpty || colsToClear.isNotEmpty) {
+      clearLines(rowsToClear, colsToClear, gameBoard, columns, rows);
+      onLinesCleared(rowsToClear, colsToClear);
+    } else {
+      ScoreService.processLineClears(0); // Reset consecutive clears
+    }
+  }
 }

@@ -382,34 +382,35 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _checkAndClearLines() {
-    final rowsToClear = GameService.findFullRows(gameBoard, rows, columns);
-    final colsToClear = GameService.findFullColumns(gameBoard, rows, columns);
-
-    if (rowsToClear.isNotEmpty || colsToClear.isNotEmpty) {
-      setState(() {
-        GameService.clearLines(rowsToClear, colsToClear, gameBoard, columns, rows);
-
-        // Check conditions for showing pardon popup
-        final totalClears = rowsToClear.length + colsToClear.length;
-        if (!_pardonShownForCurrentStreak && 
-            (totalClears > 1 || ScoreService.consecutiveClears >= 3)) {
-          _pardonShownForCurrentStreak = true;
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            showDialog(
-              context: context,
-              builder: (context) => const PardonPopup(),
-            );
-          });
-        }
-      });
-
-      // Show clear effect
-      _showClearEffect(rowsToClear, colsToClear);
-      
-      // Save state after clearing lines
-      unawaited(_saveGameState());
-    } else {
-      ScoreService.processLineClears(0); // Reset consecutive clears
+    setState(() {
+      GameService.checkAndClearLines(
+        gameBoard: gameBoard,
+        rows: rows,
+        columns: columns,
+        onLinesCleared: (rowsToClear, colsToClear) {
+          // Check conditions for showing pardon popup
+          final totalClears = rowsToClear.length + colsToClear.length;
+          if (!_pardonShownForCurrentStreak && 
+              (totalClears > 1 || ScoreService.consecutiveClears >= 3)) {
+            _pardonShownForCurrentStreak = true;
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              showDialog(
+                context: context,
+                builder: (context) => const PardonPopup(),
+              );
+            });
+          }
+          
+          // Show clear effect
+          _showClearEffect(rowsToClear, colsToClear);
+          
+          // Save state after clearing lines
+          unawaited(_saveGameState());
+        },
+      );
+    });
+    
+    if (ScoreService.consecutiveClears == 0) {
       _pardonShownForCurrentStreak = false;
     }
   }
