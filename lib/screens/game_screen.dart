@@ -268,100 +268,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     }
   }
 
-  bool _canAnyBlockFit() {
-    // Check if any possible block pattern could fit on the board
-    for (final basePattern in BlockPatterns.allPatterns) {
-      final orientations = basePattern.getAllOrientations();
-      _log('Checking pattern with ${orientations.length} orientations');
-      // Get all possible orientations of this pattern
-      for (final pattern in orientations) {
-        for (int row = 0; row < rows; row++) {
-          for (int col = 0; col < columns; col++) {
-            if (gridSystem.canPlacePattern(
-              pattern,
-              GridPosition(row, col),
-              gameBoard,
-            )) {
-              _log('Found fitting position for pattern at row: $row, col: $col');
-              return true;
-            }
-          }
-        }
-      }
-    }
-    _log('No patterns can fit anywhere on the board');
-    return false;
-  }
-
-  bool _canCurrentPatternsfit() {
-    // Check if any of the current patterns can be placed anywhere
-    for (int i = 0; i < availablePatterns.length; i++) {
-      final basePattern = availablePatterns[i];
-      final orientations = basePattern.getAllOrientations();
-      _log('Checking current pattern with ${orientations.length} orientations');
-      // Get all possible orientations of this pattern
-      for (final pattern in orientations) {
-        for (int row = 0; row < rows; row++) {
-          for (int col = 0; col < columns; col++) {
-            if (gridSystem.canPlacePattern(
-              pattern,
-              GridPosition(row, col),
-              gameBoard,
-            )) {
-              // Replace the original pattern with the working orientation
-              availablePatterns[i] = pattern;
-              _log('Found fitting position for current pattern at row: $row, col: $col');
-              return true;
-            }
-          }
-        }
-      }
-    }
-    _log('None of the current patterns can fit');
-    return false;
-  }
-
-  void _generateNewPatterns({bool afterAd = false}) {
-    _log('Generating new patterns, afterAd: $afterAd');
-    
-    // First check if any block could possibly fit
-    if (afterAd) {
-      final canFit = _canAnyBlockFit();
-      _log('Can any block fit: $canFit');
-      if (!canFit) {
-        _log('No blocks can fit, skipping reroll');
-        _showGameOverPopup();
-        return; // No point in rerolling if no block can fit
-      }
-
-      int attempts = 0;
-      const maxAttempts = 100; // Prevent infinite loops while giving more chances
-      bool foundValidPattern = false;
-
-      while (!foundValidPattern && attempts < maxAttempts) {
-        List<BlockPattern> newPatterns = BlockPatterns.getRandomPatterns(3);
-        setState(() {
-          availablePatterns = newPatterns;
-        });
-        
-        foundValidPattern = _canCurrentPatternsfit(); // This will also set the correct orientation
-        _log('Attempt $attempts: Found valid pattern: $foundValidPattern');
-        attempts++;
-      }
-
-      _log('Finished rerolling after $attempts attempts. Found valid pattern: $foundValidPattern');
-      
-      // If we couldn't find a valid pattern after max attempts, show game over
-      if (!foundValidPattern) {
-        _log('Could not find valid pattern after $maxAttempts attempts');
-        _showGameOverPopup();
-      }
-    } else {
-      setState(() {
-        availablePatterns = BlockPatterns.getRandomPatterns(3);
-      });
-    }
-  }
 
   void _placePattern(BlockPattern pattern, GridPosition position) {
     setState(() {
@@ -370,22 +276,36 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     });
   }
 
-  bool _isGameOver() {
-    // Check if any available pattern can be placed anywhere on the board
-    for (final pattern in availablePatterns) {
-      for (int row = 0; row < rows; row++) {
-        for (int col = 0; col < columns; col++) {
-          if (gridSystem.canPlacePattern(
-            pattern,
-            GridPosition(row, col),
-            gameBoard,
-          )) {
-            return false;
-          }
-        }
-      }
+  void _generateNewPatterns({bool afterAd = false}) {
+    _log('Generating new patterns, afterAd: $afterAd');
+    
+    final newPatterns = PatternService.generateNewPatterns(
+      afterAd: afterAd,
+      gameBoard: gameBoard,
+      gridSystem: gridSystem,
+      rows: rows,
+      columns: columns,
+    );
+    
+    if (newPatterns.isEmpty && afterAd) {
+      _log('No valid patterns found, showing game over');
+      _showGameOverPopup();
+      return;
     }
-    return true;
+    
+    setState(() {
+      availablePatterns = newPatterns;
+    });
+  }
+
+  bool _isGameOver() {
+    return PatternService.isGameOver(
+      availablePatterns: availablePatterns,
+      gameBoard: gameBoard,
+      gridSystem: gridSystem,
+      rows: rows,
+      columns: columns,
+    );
   }
 
   void _showGameOverPopup() async {
