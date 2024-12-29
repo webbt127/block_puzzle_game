@@ -1,3 +1,4 @@
+import 'package:block_puzzle_game/services/score_service.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
