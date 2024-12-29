@@ -1,19 +1,20 @@
 import 'dart:async';
 
-import 'package:block_puzzle_game/services/score_service.dart';
+import 'package:block_puzzle_game/providers/score_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter/material.dart';
 import 'dart:math' as math;
 
-class ScoreDisplay extends StatefulWidget {
+class ScoreDisplay extends ConsumerWidget {
   const ScoreDisplay({
     super.key,
   });
 
   @override
-  State<ScoreDisplay> createState() => _ScoreDisplayState();
+  ConsumerState<ScoreDisplay> createState() => _ScoreDisplayState();
 }
 
-class _ScoreDisplayState extends State<ScoreDisplay> {
+class _ScoreDisplayState extends ConsumerState<ScoreDisplay> {
 
   @override
   Widget build(BuildContext context) {
