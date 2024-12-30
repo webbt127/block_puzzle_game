@@ -47,7 +47,7 @@ Future<void> initializeApp() async {
     AnalyticsService.logError('game_services_signin_error', e, null);
   }
 
-  return settingsProvider;
+  //return settingsProvider;
 }
 
 void main() {
