@@ -47,7 +47,7 @@ Future<void> initializeApp() async {
     AnalyticsService.logError('game_services_signin_error', e, null);
   }
 
-  //return settingsProvider;
+  // No return needed
 }
 
 void main() {
@@ -64,7 +64,7 @@ void main() {
       );
     };
 
-    final settingsProvider = await initializeApp();
+    await initializeApp();
     
     runApp(
       ProviderScope(
@@ -72,7 +72,7 @@ void main() {
           supportedLocales: supportedLocales,
           path: 'assets/translations',
           fallbackLocale: const Locale('en'),
-          startLocale: Locale(settingsProvider.languageCode),
+          startLocale: const Locale('en'),
           child: const MyApp(),
         ),
       ),
