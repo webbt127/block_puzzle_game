@@ -326,13 +326,7 @@ class _GameOverPopupState extends State<GameOverPopup>
                                   width: double.infinity,
                                   height: 44,
                                   child: ElevatedButton(
-                                    onPressed: () {
-                                      // Show interstitial ad if available
-                                      if (AdService.hasInterstitialAd && !widget.hideAds) {
-                                        AdService.showInterstitialAd();
-                                      }
-                                      widget.onRestart();
-                                    },
+                                    onPressed: widget.onRestart,
                                     style: ElevatedButton.styleFrom(
                                       backgroundColor: Colors.blue[900],
                                       foregroundColor: Colors.white,
