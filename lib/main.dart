@@ -18,20 +18,8 @@ import 'package:block_puzzle_game/models/theme.dart';
 import 'package:block_puzzle_game/screens/settings_screen.dart';
 import 'package:block_puzzle_game/screens/about_screen.dart';
 
-void main() async {
-  // Ensure this is called first, before any other initialization
-  WidgetsFlutterBinding.ensureInitialized();
+Future<void> initializeApp() async {
   await EasyLocalization.ensureInitialized();
-
-  // Initialize error tracking
-  FlutterError.onError = (FlutterErrorDetails details) {
-    FlutterError.presentError(details);
-    AnalyticsService.logError(
-      'flutter_error',
-      details.exception,
-      details.stack,
-    );
-  };
 
   final container = ProviderContainer();
   final settingsProvider =
@@ -59,26 +47,40 @@ void main() async {
     AnalyticsService.logError('game_services_signin_error', e, null);
   }
 
-  // Run the app inside the error zone
-  runZonedGuarded(
-    () {
-      runApp(
-        ProviderScope(
-          child: EasyLocalization(
-            supportedLocales: supportedLocales,
-            path: 'assets/translations',
-            fallbackLocale: const Locale('en'),
-            startLocale: Locale(settingsProvider.languageCode),
-            child: const MyApp(),
-          ),
-        ),
+  return settingsProvider;
+}
+
+void main() {
+  runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    
+    // Initialize error tracking
+    FlutterError.onError = (FlutterErrorDetails details) {
+      FlutterError.presentError(details);
+      AnalyticsService.logError(
+        'flutter_error',
+        details.exception,
+        details.stack,
       );
-    },
-    (error, stack) {
-      print('Uncaught error: $error');
-      AnalyticsService.logError('uncaught_error', error, stack);
-    },
-  );
+    };
+
+    final settingsProvider = await initializeApp();
+    
+    runApp(
+      ProviderScope(
+        child: EasyLocalization(
+          supportedLocales: supportedLocales,
+          path: 'assets/translations',
+          fallbackLocale: const Locale('en'),
+          startLocale: Locale(settingsProvider.languageCode),
+          child: const MyApp(),
+        ),
+      ),
+    );
+  }, (error, stack) {
+    print('Uncaught error: $error');
+    AnalyticsService.logError('uncaught_error', error, stack);
+  });
 }
 
 class MyApp extends ConsumerWidget {
