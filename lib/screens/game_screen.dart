@@ -586,9 +586,47 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           ],
         ),
         body: SafeArea(
-          child: Stack(
-            children: [
-              Column(
+          child: DragTarget<BlockPattern>(
+            onWillAccept: (data) => true,
+            onAcceptWithDetails: (details) async {
+              if (previewPosition != null && previewPattern != null) {
+                final isValid = gridSystem.canPlacePattern(
+                  previewPattern!,
+                  previewPosition!,
+                  gameBoard,
+                );
+                if (isValid) {
+                  await ref.read(feedbackManagerProvider).playFeedback();
+                  _handlePatternPlacement(previewPattern!, previewPosition!);
+                }
+                // Clear preview in all cases
+                setState(() {
+                  previewPosition = null;
+                  previewPattern = null;
+                });
+              }
+            },
+            onLeave: (data) {
+              setState(() {
+                previewPosition = null;
+                previewPattern = null;
+              });
+            },
+            onMove: (details) {
+              final position = gridSystem.getCenteredPatternPosition(
+                details.data,
+                details.offset,
+                context,
+              );
+              setState(() {
+                previewPosition = position;
+                previewPattern = details.data;
+                _updatePotentialClears();
+              });
+            },
+            builder: (context, candidateData, rejectedData) => Stack(
+              children: [
+                Column(
                 children: [
                   Expanded(
                     child: Center(
@@ -739,58 +777,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                             ],
                                           ),
                                         ),
-                                        // Wrap everything in a DragTarget that's taller than the grid
-                                        DragTarget<BlockPattern>(
-                                          onWillAccept: (data) => true,
-                                          onAcceptWithDetails: (details) async {
-                                            if (previewPosition != null &&
-                                                previewPattern != null) {
-                                              final isValid =
-                                                  gridSystem.canPlacePattern(
-                                                previewPattern!,
-                                                previewPosition!,
-                                                gameBoard,
-                                              );
-                                              if (isValid) {
-                                                await ref
-                                                    .read(
-                                                        feedbackManagerProvider)
-                                                    .playFeedback();
-                                                _handlePatternPlacement(
-                                                    previewPattern!,
-                                                    previewPosition!);
-                                              }
-                                              // Clear preview in all cases
-                                              setState(() {
-                                                previewPosition = null;
-                                                previewPattern = null;
-                                              });
-                                            }
-                                          },
-                                          onLeave: (data) {
-                                            setState(() {
-                                              previewPosition = null;
-                                              previewPattern = null;
-                                            });
-                                          },
-                                          onMove: (details) {
-                                            final position = gridSystem
-                                                .getCenteredPatternPosition(
-                                              details.data,
-                                              details.offset,
-                                              context,
-                                            );
-                                            setState(() {
-                                              previewPosition = position;
-                                              previewPattern = details.data;
-                                              _updatePotentialClears();
-                                            });
-                                          },
-                                          builder: (context, candidateData,
-                                              rejectedData) {
-                                            return Container(); // Empty container to receive drops
-                                          },
-                                        ),
+                                        Container(), // Empty container for spacing
                                       ],
                                     ),
                                   ),
