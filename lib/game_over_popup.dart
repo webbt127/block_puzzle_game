@@ -1,12 +1,14 @@
 import 'dart:math' as math;
 import 'package:block_puzzle_game/services/games_services.dart';
 import 'package:block_puzzle_game/services/ad_service.dart';
+import 'package:block_puzzle_game/providers/feedback_providers.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart' as foundation;
 import 'widgets/patriotic_title.dart';
 
-class GameOverPopup extends StatefulWidget {
+class GameOverPopup extends ConsumerStatefulWidget {
   final int finalScore;
   final VoidCallback onRestart;
   final bool debugMode;
@@ -27,10 +29,10 @@ class GameOverPopup extends StatefulWidget {
   });
 
   @override
-  State<GameOverPopup> createState() => _GameOverPopupState();
+  ConsumerState<GameOverPopup> createState() => _GameOverPopupState();
 }
 
-class _GameOverPopupState extends State<GameOverPopup>
+class _GameOverPopupState extends ConsumerState<GameOverPopup>
     with SingleTickerProviderStateMixin {
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
@@ -64,6 +66,13 @@ class _GameOverPopupState extends State<GameOverPopup>
     _currentScore = widget.finalScore;
     _highScore = widget.initialHighScore;
     _isHighScore = _highScore != null && widget.finalScore > _highScore!;
+    
+    // Play appropriate feedback sound
+    if (_isHighScore) {
+      ref.read(winFeedback).trigger();
+    } else {
+      ref.read(timeUpFeedback).trigger();
+    }
     
     // Select message based on high score status
     final random = math.Random();
