@@ -20,14 +20,14 @@ class StoreService {
   Future<void> initialize() async {
     await LoggingService.log('StoreService: Initializing...');
     _isAvailable = await _inAppPurchase.isAvailable();
-    
+
     if (!_isAvailable) {
       await LoggingService.log('StoreService: Store not available');
       return;
     }
 
     await LoggingService.log('StoreService: Store is available');
-    
+
     // Set up purchase stream listener
     _subscription = _inAppPurchase.purchaseStream.listen(
       _handlePurchaseUpdate,
@@ -41,25 +41,26 @@ class StoreService {
 
     // Load products
     await loadProducts();
-    
+
     // Check for existing purchases
-    try {
-      await _inAppPurchase.restorePurchases();
-      await LoggingService.log('StoreService: Restored purchases');
-    } catch (e) {
-      await LoggingService.log('StoreService: Error restoring purchases: $e');
-    }
+    // try {
+    //   await _inAppPurchase.restorePurchases();
+    //   await LoggingService.log('StoreService: Restored purchases');
+    // } catch (e) {
+    //   await LoggingService.log('StoreService: Error restoring purchases: $e');
+    // }
   }
 
   Future<void> loadProducts() async {
     await LoggingService.log('StoreService: Loading products...');
-    
+
     try {
-      final ProductDetailsResponse response = 
+      final ProductDetailsResponse response =
           await _inAppPurchase.queryProductDetails(_productIds.toSet());
 
       if (response.error != null) {
-        await LoggingService.log('StoreService: Error loading products: ${response.error}');
+        await LoggingService.log(
+            'StoreService: Error loading products: ${response.error}');
         return;
       }
 
@@ -69,26 +70,31 @@ class StoreService {
       }
 
       _products = response.productDetails;
-      await LoggingService.log('StoreService: Loaded ${_products?.length} products');
-      
+      await LoggingService.log(
+          'StoreService: Loaded ${_products?.length} products');
+
       for (var product in _products ?? []) {
-        await LoggingService.log('- ${product.id}: ${product.title} (${product.price})');
+        await LoggingService.log(
+            '- ${product.id}: ${product.title} (${product.price})');
       }
     } catch (e) {
       await LoggingService.log('StoreService: Failed to load products: $e');
     }
   }
 
-  Future<void> _handlePurchaseUpdate(List<PurchaseDetails> purchaseDetailsList) async {
+  Future<void> _handlePurchaseUpdate(
+      List<PurchaseDetails> purchaseDetailsList) async {
     for (var purchaseDetails in purchaseDetailsList) {
-      await LoggingService.log('StoreService: Processing purchase ${purchaseDetails.productID}');
-      
+      await LoggingService.log(
+          'StoreService: Processing purchase ${purchaseDetails.productID}');
+
       if (purchaseDetails.status == PurchaseStatus.pending) {
         await LoggingService.log('StoreService: Purchase pending');
       } else if (purchaseDetails.status == PurchaseStatus.error) {
-        await LoggingService.log('StoreService: Purchase error: ${purchaseDetails.error}');
+        await LoggingService.log(
+            'StoreService: Purchase error: ${purchaseDetails.error}');
       } else if (purchaseDetails.status == PurchaseStatus.purchased ||
-                 purchaseDetails.status == PurchaseStatus.restored) {
+          purchaseDetails.status == PurchaseStatus.restored) {
         await LoggingService.log('StoreService: Purchase successful');
         _purchasedProductIds.add(purchaseDetails.productID);
       }
@@ -101,8 +107,9 @@ class StoreService {
   }
 
   Future<bool> buyProduct(ProductDetails product) async {
-    await LoggingService.log('StoreService: Attempting to purchase ${product.id}');
-    
+    await LoggingService.log(
+        'StoreService: Attempting to purchase ${product.id}');
+
     final PurchaseParam purchaseParam = PurchaseParam(
       productDetails: product,
     );
@@ -130,20 +137,26 @@ class StoreService {
   }
 
   List<ProductDetails> get availableProducts {
-    final available = (_products ?? []).where((p) => !_purchasedProductIds.contains(p.id)).toList();
+    final available = (_products ?? [])
+        .where((p) => !_purchasedProductIds.contains(p.id))
+        .toList();
     LoggingService.log('StoreService: Getting available products:');
     LoggingService.log('- All products: ${_products?.length ?? 0}');
-    LoggingService.log('- Product IDs: ${_products?.map((p) => p.id).join(", ") ?? "none"}');
+    LoggingService.log(
+        '- Product IDs: ${_products?.map((p) => p.id).join(", ") ?? "none"}');
     LoggingService.log('- Purchased IDs: $_purchasedProductIds');
     LoggingService.log('- Available products: ${available.length}');
     return available;
   }
 
   List<ProductDetails> get purchasedProducts {
-    final purchased = (_products ?? []).where((p) => _purchasedProductIds.contains(p.id)).toList();
+    final purchased = (_products ?? [])
+        .where((p) => _purchasedProductIds.contains(p.id))
+        .toList();
     LoggingService.log('StoreService: Getting purchased products:');
     LoggingService.log('- All products: ${_products?.length ?? 0}');
-    LoggingService.log('- Product IDs: ${_products?.map((p) => p.id).join(", ") ?? "none"}');
+    LoggingService.log(
+        '- Product IDs: ${_products?.map((p) => p.id).join(", ") ?? "none"}');
     LoggingService.log('- Purchased IDs: $_purchasedProductIds');
     LoggingService.log('- Purchased products: ${purchased.length}');
     return purchased;
@@ -173,7 +186,8 @@ Future<List<ProductDetails>> availableProducts(Ref ref) async {
   await ref.watch(initializeStoreProvider.future);
   await LoggingService.log('AvailableProducts Provider: Getting products');
   final products = service.availableProducts;
-  await LoggingService.log('AvailableProducts Provider: Found ${products.length} products');
+  await LoggingService.log(
+      'AvailableProducts Provider: Found ${products.length} products');
   return products;
 }
 
@@ -183,7 +197,8 @@ Future<List<ProductDetails>> purchasedProducts(Ref ref) async {
   await ref.watch(initializeStoreProvider.future);
   await LoggingService.log('PurchasedProducts Provider: Getting products');
   final products = service.purchasedProducts;
-  await LoggingService.log('PurchasedProducts Provider: Found ${products.length} products');
+  await LoggingService.log(
+      'PurchasedProducts Provider: Found ${products.length} products');
   return products;
 }
 
