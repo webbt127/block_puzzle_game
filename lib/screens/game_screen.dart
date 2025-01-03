@@ -128,6 +128,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         availablePatterns =
             BlockPatterns.getPatternsFromSavedState(savedState.patterns);
       });
+
+      // Check for game over after loading saved state
+      if (_isGameOver()) {
+        // Use a small delay to ensure the UI is built before showing popup
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _showGameOverPopup();
+        });
+      }
     } else {
       _log('No saved state found, starting new game');
       setState(() {
