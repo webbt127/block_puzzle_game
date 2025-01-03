@@ -539,100 +539,273 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   @override
   Widget build(BuildContext context) {
     return WillPopScope(
-      onWillPop: () async {
-        // Save state before exiting
-        await _saveGameState();
-        return true;
-      },
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          leading: GameMenu(
-            onHome: () {
-              Navigator.of(context).pushReplacement(
-                MaterialPageRoute(
-                  builder: (context) => const MainMenuScreen(),
-                ),
-              );
-            },
-            onLeaderboard: () {
-              GameServicesService.showLeaderboard();
-            },
-            onStore: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const StoreScreen(),
-                ),
-              );
-            },
-            onRate: _rateApp,
-            onSettings: () {
-              Navigator.of(context).push(
-                MaterialPageRoute(
-                  builder: (context) => const SettingsScreen(),
-                ),
-              );
-            },
-            onFeedback: () {
-              ref.read(feedbackManagerProvider).playFeedback();
-            },
-            onRestart: _resetGame,
-            onWhatsNew: _showWhatsNew,
-            onHowToPlay: _showHowToPlay,
-          ),
-          actions: [
-            const ScoreDisplay(),
-          ],
-        ),
-        body: SafeArea(
-          child: DragTarget<BlockPattern>(
-            onWillAccept: (data) => true,
-            onAcceptWithDetails: (details) async {
-              if (previewPosition != null && previewPattern != null) {
-                final isValid = gridSystem.canPlacePattern(
-                  previewPattern!,
-                  previewPosition!,
-                  gameBoard,
+        onWillPop: () async {
+          // Save state before exiting
+          await _saveGameState();
+          return true;
+        },
+        child: Scaffold(
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: GameMenu(
+              onHome: () {
+                Navigator.of(context).pushReplacement(
+                  MaterialPageRoute(
+                    builder: (context) => const MainMenuScreen(),
+                  ),
                 );
-                if (isValid) {
-                  await ref.read(feedbackManagerProvider).playFeedback();
-                  _handlePatternPlacement(previewPattern!, previewPosition!);
+              },
+              onLeaderboard: () {
+                GameServicesService.showLeaderboard();
+              },
+              onStore: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const StoreScreen(),
+                  ),
+                );
+              },
+              onRate: _rateApp,
+              onSettings: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const SettingsScreen(),
+                  ),
+                );
+              },
+              onFeedback: () {
+                ref.read(feedbackManagerProvider).playFeedback();
+              },
+              onRestart: _resetGame,
+              onWhatsNew: _showWhatsNew,
+              onHowToPlay: _showHowToPlay,
+            ),
+            actions: [
+              const ScoreDisplay(),
+            ],
+          ),
+          body: SafeArea(
+            child: DragTarget<BlockPattern>(
+              onWillAccept: (data) => true,
+              onAcceptWithDetails: (details) async {
+                if (previewPosition != null && previewPattern != null) {
+                  final isValid = gridSystem.canPlacePattern(
+                    previewPattern!,
+                    previewPosition!,
+                    gameBoard,
+                  );
+                  if (isValid) {
+                    await ref.read(feedbackManagerProvider).playFeedback();
+                    _handlePatternPlacement(previewPattern!, previewPosition!);
+                  }
+                  // Clear preview in all cases
+                  setState(() {
+                    previewPosition = null;
+                    previewPattern = null;
+                  });
                 }
-                // Clear preview in all cases
+              },
+              onLeave: (data) {
                 setState(() {
                   previewPosition = null;
                   previewPattern = null;
                 });
-              }
-            },
-            onLeave: (data) {
-              setState(() {
-                previewPosition = null;
-                previewPattern = null;
-              });
-            },
-            onMove: (details) {
-              final position = gridSystem.getCenteredPatternPosition(
-                details.data,
-                details.offset,
-                context,
-              );
-              setState(() {
-                previewPosition = position;
-                previewPattern = details.data;
-                _updatePotentialClears();
-              });
-            },
-            builder: (context, candidateData, rejectedData) => Stack(
-              children: [
-                Column(
+              },
+              onMove: (details) {
+                final position = gridSystem.getCenteredPatternPosition(
+                  details.data,
+                  details.offset,
+                  context,
+                );
+                setState(() {
+                  previewPosition = position;
+                  previewPattern = details.data;
+                  _updatePotentialClears();
+                });
+              },
+              builder: (context, candidateData, rejectedData) => Stack(
                 children: [
-                  Expanded(
-                    child: Center(
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(
-                            horizontal: 2.0, vertical: 8.0),
+                  Column(
+                    children: [
+                      Expanded(
+                        child: Center(
+                          child: Container(
+                            margin: const EdgeInsets.symmetric(
+                                horizontal: 2.0, vertical: 8.0),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).brightness ==
+                                      Brightness.dark
+                                  ? Colors.grey[850]
+                                  : Colors.white,
+                              borderRadius: BorderRadius.circular(16.0),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: Colors.black.withOpacity(
+                                      Theme.of(context).brightness ==
+                                              Brightness.dark
+                                          ? 0.3
+                                          : 0.1),
+                                  blurRadius: 10,
+                                  spreadRadius: 2,
+                                ),
+                              ],
+                            ),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                // Update grid cell size based on available space
+                                final smallestDimension = math.min(
+                                    constraints.maxWidth,
+                                    constraints.maxHeight);
+                                final cellSize = (smallestDimension - 4) /
+                                    rows; // 32 for margin
+                                final gridSize =
+                                    cellSize * rows; // Total grid size
+
+                                // Calculate centering padding
+                                final horizontalPadding =
+                                    (constraints.maxWidth - gridSize) / 2;
+                                final verticalPadding =
+                                    (constraints.maxHeight - gridSize) / 2;
+
+                                gridSystem = GridSystem(
+                                  rows: rows,
+                                  cols: columns,
+                                  cellSize: cellSize,
+                                );
+
+                                return Stack(
+                                  children: [
+                                    // Patriotic grid overlay for filled cells
+                                    Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal:
+                                            math.max(0, horizontalPadding),
+                                        vertical: math.max(0, verticalPadding),
+                                      ),
+                                      child: AspectRatio(
+                                        aspectRatio: 1.0,
+                                        child: PatrioticGridOverlay(
+                                          gameBoard: gameBoard,
+                                          cellSize: cellSize,
+                                          isDarkMode:
+                                              Theme.of(context).brightness ==
+                                                  Brightness.dark,
+                                        ),
+                                      ),
+                                    ),
+                                    // Potential clear overlay
+                                    Padding(
+                                      padding: EdgeInsets.symmetric(
+                                        horizontal:
+                                            math.max(0, horizontalPadding),
+                                        vertical: math.max(0, verticalPadding),
+                                      ),
+                                      child: AspectRatio(
+                                        aspectRatio: 1.0,
+                                        child: PotentialClearOverlay(
+                                          potentialRowClears:
+                                              potentialRowClears,
+                                          potentialColumnClears:
+                                              potentialColumnClears,
+                                          cellSize: cellSize,
+                                        ),
+                                      ),
+                                    ),
+                                    // Grid and drag target
+                                    Padding(
+                                      padding: EdgeInsets.only(
+                                        left: math.max(0, horizontalPadding),
+                                        right: math.max(0, horizontalPadding),
+                                        top: math.max(0, verticalPadding),
+                                        // Remove bottom padding to extend drag area
+                                      ),
+                                      child: SizedBox(
+                                        width: gridSize,
+                                        height: gridSize +
+                                            ref
+                                                .watch(settings
+                                                    .settingsNotifierProvider)
+                                                .value!
+                                                .blockPlacementOffset
+                                                .value,
+                                        child: Stack(
+                                          children: [
+                                            // The grid itself stays square
+                                            SizedBox(
+                                              width: gridSize,
+                                              height: gridSize,
+                                              child: Stack(
+                                                children: [
+                                                  CustomPaint(
+                                                    key: _gridKey,
+                                                    size: Size(
+                                                        gridSize, gridSize),
+                                                    painter: GridPainter(
+                                                      grid: gridSystem,
+                                                      gameBoard: gameBoard,
+                                                      gridLineColor: Theme.of(
+                                                                      context)
+                                                                  .brightness ==
+                                                              Brightness.dark
+                                                          ? Colors.grey[700]!
+                                                          : const Color(
+                                                              0xFFE0E0E0),
+                                                      highlightedPosition:
+                                                          previewPosition,
+                                                      highlightedPattern:
+                                                          previewPattern,
+                                                      onImageLoad: () {
+                                                        if (mounted)
+                                                          setState(() {});
+                                                      },
+                                                      isDarkMode:
+                                                          Theme.of(context)
+                                                                  .brightness ==
+                                                              Brightness.dark,
+                                                    ),
+                                                  ),
+                                                  GridOverlay(
+                                                    grid: gridSystem,
+                                                    gameBoard: gameBoard,
+                                                    gridLineColor: Theme.of(
+                                                                    context)
+                                                                .brightness ==
+                                                            Brightness.dark
+                                                        ? Colors.grey[700]!
+                                                        : const Color(
+                                                            0xFFE0E0E0),
+                                                    highlightedPosition:
+                                                        previewPosition,
+                                                    highlightedPattern:
+                                                        previewPattern,
+                                                    isDarkMode:
+                                                        Theme.of(context)
+                                                                .brightness ==
+                                                            Brightness.dark,
+                                                  ),
+                                                  if (_activeClearEffect !=
+                                                      null)
+                                                    _activeClearEffect!,
+                                                ],
+                                              ),
+                                            ),
+                                            Container(), // Empty container for spacing
+                                          ],
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                );
+                              },
+                            ),
+                          ),
+                        ),
+                      ),
+                      Container(
+                        height: 120,
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 8),
                         decoration: BoxDecoration(
                           color: Theme.of(context).brightness == Brightness.dark
                               ? Colors.grey[850]
@@ -650,321 +823,168 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                             ),
                           ],
                         ),
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            // Update grid cell size based on available space
-                            final smallestDimension = math.min(
-                                constraints.maxWidth, constraints.maxHeight);
-                            final cellSize =
-                                (smallestDimension - 4) / rows; // 32 for margin
-                            final gridSize = cellSize * rows; // Total grid size
-
-                            // Calculate centering padding
-                            final horizontalPadding =
-                                (constraints.maxWidth - gridSize) / 2;
-                            final verticalPadding =
-                                (constraints.maxHeight - gridSize) / 2;
-
-                            gridSystem = GridSystem(
-                              rows: rows,
-                              cols: columns,
-                              cellSize: cellSize,
-                            );
-
-                            return Stack(
-                              children: [
-                                // Patriotic grid overlay for filled cells
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: math.max(0, horizontalPadding),
-                                    vertical: math.max(0, verticalPadding),
-                                  ),
-                                  child: AspectRatio(
-                                    aspectRatio: 1.0,
-                                    child: PatrioticGridOverlay(
-                                      gameBoard: gameBoard,
-                                      cellSize: cellSize,
-                                      isDarkMode:
-                                          Theme.of(context).brightness ==
-                                              Brightness.dark,
-                                    ),
-                                  ),
-                                ),
-                                // Potential clear overlay
-                                Padding(
-                                  padding: EdgeInsets.symmetric(
-                                    horizontal: math.max(0, horizontalPadding),
-                                    vertical: math.max(0, verticalPadding),
-                                  ),
-                                  child: AspectRatio(
-                                    aspectRatio: 1.0,
-                                    child: PotentialClearOverlay(
-                                      potentialRowClears: potentialRowClears,
-                                      potentialColumnClears:
-                                          potentialColumnClears,
-                                      cellSize: cellSize,
-                                    ),
-                                  ),
-                                ),
-                                // Grid and drag target
-                                Padding(
-                                  padding: EdgeInsets.only(
-                                    left: math.max(0, horizontalPadding),
-                                    right: math.max(0, horizontalPadding),
-                                    top: math.max(0, verticalPadding),
-                                    // Remove bottom padding to extend drag area
-                                  ),
-                                  child: SizedBox(
-                                    width: gridSize,
-                                    height: gridSize +
-                                        ref
-                                            .watch(settings
-                                                .settingsNotifierProvider)
-                                            .value!
-                                            .blockPlacementOffset
-                                            .value,
-                                    child: Stack(
-                                      children: [
-                                        // The grid itself stays square
-                                        SizedBox(
-                                          width: gridSize,
-                                          height: gridSize,
-                                          child: Stack(
-                                            children: [
-                                              CustomPaint(
-                                                key: _gridKey,
-                                                size: Size(gridSize, gridSize),
-                                                painter: GridPainter(
-                                                  grid: gridSystem,
-                                                  gameBoard: gameBoard,
-                                                  gridLineColor: Theme.of(
-                                                                  context)
-                                                              .brightness ==
-                                                          Brightness.dark
-                                                      ? Colors.grey[700]!
-                                                      : const Color(0xFFE0E0E0),
-                                                  highlightedPosition:
-                                                      previewPosition,
-                                                  highlightedPattern:
-                                                      previewPattern,
-                                                  onImageLoad: () {
-                                                    if (mounted)
-                                                      setState(() {});
-                                                  },
+                        child: Row(
+                          children: [
+                            // Reroll button
+                            RerollButton(
+                              rerollCount: rerollCount,
+                              hideAds: _hideAds,
+                              onReroll: _handleReroll,
+                            ),
+                            // Available blocks with original layout
+                            Expanded(
+                              child: LayoutBuilder(
+                                builder: (context, constraints) {
+                                  final itemWidth =
+                                      (constraints.maxWidth - 32) / 3;
+                                  return Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceEvenly,
+                                    children: availablePatterns.map((pattern) {
+                                      final smallCellSize = min(itemWidth / 5,
+                                          gridSystem.cellSize * 0.4);
+                                      final dragCellSize =
+                                          gridSystem.cellSize * 0.75;
+                                      return SizedBox(
+                                        width: itemWidth,
+                                        child: Center(
+                                          child: SizedBox(
+                                            width: pattern.width *
+                                                dragCellSize *
+                                                1.2,
+                                            height: pattern.height *
+                                                dragCellSize *
+                                                1.2,
+                                            child: Draggable<BlockPattern>(
+                                              data: pattern,
+                                              dragAnchorStrategy: (draggable,
+                                                  context, position) {
+                                                final centerX = pattern.width *
+                                                    dragCellSize /
+                                                    2;
+                                                final centerY = pattern.height *
+                                                    dragCellSize /
+                                                    2;
+                                                return Offset(
+                                                    centerX,
+                                                    centerY +
+                                                        ref
+                                                            .watch(settings
+                                                                .settingsNotifierProvider)
+                                                            .value!
+                                                            .blockPlacementOffset
+                                                            .value);
+                                              },
+                                              onDragStarted: () {
+                                                ref
+                                                    .read(
+                                                        feedbackManagerProvider)
+                                                    .playFeedback();
+                                              },
+                                              feedback: Transform.scale(
+                                                scale: 1.3,
+                                                child: PatrioticBlockPattern(
+                                                  pattern: pattern,
+                                                  cellSize: dragCellSize,
                                                   isDarkMode: Theme.of(context)
                                                           .brightness ==
                                                       Brightness.dark,
                                                 ),
                                               ),
-                                              GridOverlay(
-                                                grid: gridSystem,
-                                                gameBoard: gameBoard,
-                                                gridLineColor: Theme.of(context)
-                                                            .brightness ==
-                                                        Brightness.dark
-                                                    ? Colors.grey[700]!
-                                                    : const Color(0xFFE0E0E0),
-                                                highlightedPosition:
-                                                    previewPosition,
-                                                highlightedPattern:
-                                                    previewPattern,
-                                                isDarkMode: Theme.of(context)
-                                                        .brightness ==
-                                                    Brightness.dark,
+                                              childWhenDragging: Opacity(
+                                                opacity: 0.5,
+                                                child: PatrioticBlockPattern(
+                                                  pattern: pattern,
+                                                  cellSize: dragCellSize,
+                                                  isDarkMode: Theme.of(context)
+                                                          .brightness ==
+                                                      Brightness.dark,
+                                                ),
                                               ),
-                                              if (_activeClearEffect != null)
-                                                _activeClearEffect!,
-                                            ],
+                                              child: Container(
+                                                padding:
+                                                    const EdgeInsets.all(6.0),
+                                                decoration: BoxDecoration(
+                                                  color: Theme.of(context)
+                                                              .brightness ==
+                                                          Brightness.dark
+                                                      ? Colors.grey[900]
+                                                      : Colors.white,
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                  border: Border.all(
+                                                    color: Theme.of(context)
+                                                                .brightness ==
+                                                            Brightness.dark
+                                                        ? Colors.blue
+                                                            .withOpacity(0.3)
+                                                        : Colors.blue
+                                                            .withOpacity(0.2),
+                                                    width: 2,
+                                                  ),
+                                                ),
+                                                child: Center(
+                                                  child: PatrioticBlockPattern(
+                                                    pattern: pattern,
+                                                    cellSize: smallCellSize,
+                                                    isDarkMode:
+                                                        Theme.of(context)
+                                                                .brightness ==
+                                                            Brightness.dark,
+                                                  ),
+                                                ),
+                                              ),
+                                            ),
                                           ),
                                         ),
-                                        Container(), // Empty container for spacing
-                                      ],
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            );
-                          },
+                                      );
+                                    }).toList(),
+                                  );
+                                },
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                    ),
+                      if (!_hideAds && _bannerAd != null && _isAdLoaded)
+                        Container(
+                          alignment: Alignment.bottomCenter,
+                          width: _bannerAd!.size.width.toDouble(),
+                          height: _bannerAd!.size.height.toDouble(),
+                          child: AdWidget(ad: _bannerAd!),
+                        ),
+                    ],
                   ),
-                  Container(
-                    height: 120,
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: Theme.of(context).brightness == Brightness.dark
-                          ? Colors.grey[850]
-                          : Colors.white,
-                      borderRadius: BorderRadius.circular(16.0),
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(
-                              Theme.of(context).brightness == Brightness.dark
-                                  ? 0.3
-                                  : 0.1),
-                          blurRadius: 10,
-                          spreadRadius: 2,
-                        ),
-                      ],
-                    ),
-                    child: Row(
-                      children: [
-                        // Reroll button
-                        RerollButton(
-                          rerollCount: rerollCount,
-                          hideAds: _hideAds,
-                          onReroll: _handleReroll,
-                        ),
-                        // Available blocks with original layout
-                        Expanded(
-                          child: LayoutBuilder(
-                            builder: (context, constraints) {
-                              final itemWidth = (constraints.maxWidth - 32) / 3;
-                              return Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceEvenly,
-                                children: availablePatterns.map((pattern) {
-                                  final smallCellSize = min(
-                                      itemWidth / 5, gridSystem.cellSize * 0.4);
-                                  final dragCellSize =
-                                      gridSystem.cellSize * 0.75;
-                                  return SizedBox(
-                                    width: itemWidth,
-                                    child: Center(
-                                      child: SizedBox(
-                                        width:
-                                            pattern.width * dragCellSize * 1.2,
-                                        height:
-                                            pattern.height * dragCellSize * 1.2,
-                                        child: Draggable<BlockPattern>(
-                                          data: pattern,
-                                          dragAnchorStrategy:
-                                              (draggable, context, position) {
-                                            final centerX = pattern.width *
-                                                dragCellSize /
-                                                2;
-                                            final centerY = pattern.height *
-                                                dragCellSize /
-                                                2;
-                                            return Offset(
-                                                centerX,
-                                                centerY +
-                                                    ref
-                                                        .watch(settings
-                                                            .settingsNotifierProvider)
-                                                        .value!
-                                                        .blockPlacementOffset
-                                                        .value);
-                                          },
-                                          onDragStarted: () {
-                                            ref
-                                                .read(feedbackManagerProvider)
-                                                .playFeedback();
-                                          },
-                                          feedback: Transform.scale(
-                                            scale: 1.3,
-                                            child: PatrioticBlockPattern(
-                                              pattern: pattern,
-                                              cellSize: dragCellSize,
-                                              isDarkMode: Theme.of(context)
-                                                      .brightness ==
-                                                  Brightness.dark,
-                                            ),
-                                          ),
-                                          childWhenDragging: Opacity(
-                                            opacity: 0.5,
-                                            child: PatrioticBlockPattern(
-                                              pattern: pattern,
-                                              cellSize: dragCellSize,
-                                              isDarkMode: Theme.of(context)
-                                                      .brightness ==
-                                                  Brightness.dark,
-                                            ),
-                                          ),
-                                          child: Container(
-                                            padding: const EdgeInsets.all(6.0),
-                                            decoration: BoxDecoration(
-                                              color: Theme.of(context)
-                                                          .brightness ==
-                                                      Brightness.dark
-                                                  ? Colors.grey[900]
-                                                  : Colors.white,
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
-                                              border: Border.all(
-                                                color: Theme.of(context)
-                                                            .brightness ==
-                                                        Brightness.dark
-                                                    ? Colors.blue
-                                                        .withOpacity(0.3)
-                                                    : Colors.blue
-                                                        .withOpacity(0.2),
-                                                width: 2,
-                                              ),
-                                            ),
-                                            child: Center(
-                                              child: PatrioticBlockPattern(
-                                                pattern: pattern,
-                                                cellSize: smallCellSize,
-                                                isDarkMode: Theme.of(context)
-                                                        .brightness ==
-                                                    Brightness.dark,
-                                              ),
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  );
-                                }).toList(),
+                  if (kDebugMode)
+                    Positioned(
+                      bottom: 16,
+                      right: 16,
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          FloatingActionButton(
+                            heroTag: 'game_over_debug',
+                            onPressed: () => _showGameOverPopup(),
+                            child: const Icon(Icons.close),
+                          ),
+                          const SizedBox(height: 8),
+                          FloatingActionButton(
+                            heroTag: 'pardon_debug',
+                            onPressed: () {
+                              showDialog(
+                                context: context,
+                                builder: (context) => const PardonPopup(),
                               );
                             },
+                            child: const Icon(Icons.bug_report),
                           ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (!_hideAds && _bannerAd != null && _isAdLoaded)
-                    Container(
-                      alignment: Alignment.bottomCenter,
-                      width: _bannerAd!.size.width.toDouble(),
-                      height: _bannerAd!.size.height.toDouble(),
-                      child: AdWidget(ad: _bannerAd!),
+                        ],
+                      ),
                     ),
                 ],
               ),
-              if (kDebugMode)
-                Positioned(
-                  bottom: 16,
-                  right: 16,
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      FloatingActionButton(
-                        heroTag: 'game_over_debug',
-                        onPressed: () => _showGameOverPopup(),
-                        child: const Icon(Icons.close),
-                      ),
-                      const SizedBox(height: 8),
-                      FloatingActionButton(
-                        heroTag: 'pardon_debug',
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (context) => const PardonPopup(),
-                          );
-                        },
-                        child: const Icon(Icons.bug_report),
-                      ),
-                    ],
-                  ),
-                ),
-            ],
+            ),
           ),
-        ),
-      ),
-    );
+        ));
   }
 }
