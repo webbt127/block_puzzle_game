@@ -60,7 +60,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   BlockPattern? previewPattern;
   BannerAd? _bannerAd;
   bool _isAdLoaded = false;
-  bool _hideAds = false;  // Track hide ads status
+  bool _hideAds = false; // Track hide ads status
   List<int> potentialRowClears = [];
   List<int> potentialColumnClears = [];
   BlockClearEffect? _activeClearEffect;
@@ -113,16 +113,20 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
     // Try to load saved state
     final savedState = await GameSaveService.loadGame();
-    
+
     if (savedState != null) {
-      _log('Loaded saved state with score: ${savedState.score} and remaining rerolls: ${savedState.remainingRerolls}');
+      _log(
+          'Loaded saved state with score: ${savedState.score} and remaining rerolls: ${savedState.remainingRerolls}');
       setState(() {
         ScoreService.reset();
-        ScoreService.addBlockScore(savedState.score ~/ 10); // Approximate block score
-        ScoreService.processLineClears(savedState.consecutiveClears); // Restore consecutive clears
+        ScoreService.addBlockScore(
+            savedState.score ~/ 10); // Approximate block score
+        ScoreService.processLineClears(
+            savedState.consecutiveClears); // Restore consecutive clears
         rerollCount = 3 - savedState.remainingRerolls;
         gameBoard = savedState.gameBoard;
-        availablePatterns = BlockPatterns.getPatternsFromSavedState(savedState.patterns);
+        availablePatterns =
+            BlockPatterns.getPatternsFromSavedState(savedState.patterns);
       });
     } else {
       _log('No saved state found, starting new game');
@@ -139,7 +143,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   Future<void> _saveGameState() async {
-    _log('Saving game state... Score: ${ScoreService.score}, Remaining Rerolls: ${3 - rerollCount}');
+    _log(
+        'Saving game state... Score: ${ScoreService.score}, Remaining Rerolls: ${3 - rerollCount}');
     await GameSaveService.saveGame(
       gameBoard: gameBoard,
       availablePatterns: availablePatterns,
@@ -150,22 +155,22 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   void _handlePatternPlacement(BlockPattern pattern, GridPosition position) {
     setState(() {
       GameService.placePattern(pattern, position, gameBoard, gridSystem);
-      
+
       // Remove used pattern
       availablePatterns.remove(pattern);
       if (availablePatterns.isEmpty) {
         _generateNewPatterns();
       }
-      
+
       // Check for line clears
       _checkAndClearLines();
-      
+
       // Check for game over
       if (_isGameOver()) {
         _showGameOverPopup();
       }
     });
-    
+
     // Save state after the setState is complete
     unawaited(_saveGameState());
   }
@@ -174,14 +179,14 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     _log('Handle reroll called');
     _log('hideAds: $_hideAds');
     _log('hasRewardedAd: ${AdService.hasRewardedAd}');
-    
+
     if (_hideAds) {
       _log('User has hideAds, rerolling without ad');
       setState(() {
         rerollCount++;
         _generateNewPatterns(afterAd: true);
       });
-      
+
       // Save state after the setState is complete
       unawaited(_saveGameState());
     } else if (AdService.hasRewardedAd) {
@@ -193,7 +198,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
             rerollCount++;
             _generateNewPatterns(afterAd: true);
           });
-          
+
           // Save state after the setState is complete
           unawaited(_saveGameState());
         },
@@ -215,7 +220,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       // Preload next interstitial
       AdService.createInterstitialAd();
     }
-    
+
     setState(() {
       ScoreService.reset();
       rerollCount = 0;
@@ -229,7 +234,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     setState(() {
       _hideAds = hideAdsStatus;
     });
-    
+
     if (!_hideAds) {
       _loadBannerAd();
       // Show preloaded interstitial ad
@@ -240,8 +245,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   }
 
   void _loadBannerAd() {
-    if (_hideAds) return;  // Don't load ad if ads are hidden
-    
+    if (_hideAds) return; // Don't load ad if ads are hidden
+
     _bannerAd = AdService.createBannerAd();
     _bannerAd?.load().then((_) {
       setState(() {
@@ -253,13 +258,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
   Future<void> _rateApp() async {
     final Uri url = Platform.isIOS
         ? Uri.parse('https://apps.apple.com/app/6739540042')
-        : Uri.parse('https://play.google.com/store/apps/details?id=com.apparchitects.blockpuzzle');
+        : Uri.parse(
+            'https://play.google.com/store/apps/details?id=com.apparchitects.blockpuzzle');
 
     if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
       throw Exception('Could not launch $url');
     }
   }
-
 
   void _placePattern(BlockPattern pattern, GridPosition position) {
     setState(() {
@@ -270,7 +275,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   void _generateNewPatterns({bool afterAd = false}) {
     _log('Generating new patterns, afterAd: $afterAd');
-    
+
     final newPatterns = PatternService.generateNewPatterns(
       afterAd: afterAd,
       gameBoard: gameBoard,
@@ -278,13 +283,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       rows: rows,
       columns: columns,
     );
-    
+
     if (newPatterns.isEmpty && afterAd) {
       _log('No valid patterns found, showing game over');
       _showGameOverPopup();
       return;
     }
-    
+
     setState(() {
       availablePatterns = newPatterns;
     });
@@ -304,7 +309,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     // Submit score and get high score
     await ScoreService.submitScore();
     final highScore = await ScoreService.getHighScore();
-    
+
     // Log game over analytics
     AnalyticsService.logEvent('game_over', properties: {
       'score': ScoreService.score,
@@ -313,7 +318,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
     // Add delay before showing popup
     await Future.delayed(const Duration(seconds: 3));
-    
+
     if (!mounted) return;
 
     // Check if rerolls would even help
@@ -323,7 +328,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
       rows: rows,
       columns: columns,
     );
-    
+
     showDialog(
       context: context,
       barrierDismissible: kDebugMode, // Allow dismissing in debug mode
@@ -334,36 +339,39 @@ class _GameScreenState extends ConsumerState<GameScreen> {
           initialHighScore: highScore, // Pass the high score
           hideAds: _hideAds,
           rerollsRemaining: canReroll ? 3 - rerollCount : 0,
-          onReroll: (canReroll && rerollCount < 3) ? () async {
-            if (!AdService.canShowRewardedAd(_hideAds)) {
-              // If no ad is loaded, create one and wait a moment
-              await AdService.loadRewardedAd();
-              await Future.delayed(const Duration(milliseconds: 500));
-            }
-            if (!_hideAds && AdService.hasRewardedAd) {
-              AdService.showRewardedAd(
-                onUserEarnedReward: (Ad ad, RewardItem reward) {
-                  _log('Reward earned, triggering reroll');
-                  setState(() {
-                    rerollCount++;
-                    _generateNewPatterns(afterAd: true);
-                  });
-                  Navigator.of(context).pop(); // Dismiss the game over popup
-                },
-              );
-            } else {
-              setState(() {
-                rerollCount++;
-                _generateNewPatterns(afterAd: true);
-              });
-              Navigator.of(context).pop(); // Dismiss the game over popup
-            }
-          } : null,
+          onReroll: (canReroll && rerollCount < 3)
+              ? () async {
+                  if (!AdService.canShowRewardedAd(_hideAds)) {
+                    // If no ad is loaded, create one and wait a moment
+                    await AdService.loadRewardedAd();
+                    await Future.delayed(const Duration(milliseconds: 500));
+                  }
+                  if (!_hideAds && AdService.hasRewardedAd) {
+                    AdService.showRewardedAd(
+                      onUserEarnedReward: (Ad ad, RewardItem reward) {
+                        _log('Reward earned, triggering reroll');
+                        setState(() {
+                          rerollCount++;
+                          _generateNewPatterns(afterAd: true);
+                        });
+                        Navigator.of(context)
+                            .pop(); // Dismiss the game over popup
+                      },
+                    );
+                  } else {
+                    setState(() {
+                      rerollCount++;
+                      _generateNewPatterns(afterAd: true);
+                    });
+                    Navigator.of(context).pop(); // Dismiss the game over popup
+                  }
+                }
+              : null,
           onRestart: () {
             // Play feedback
             final feedbackManager = ref.read(feedbackManagerProvider);
             //feedbackManager.playButtonPress();
-            
+
             setState(() {
               // Reset game state
               gameBoard = List.generate(
@@ -371,7 +379,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                 (i) => List.generate(columns, (j) => false),
               );
               ScoreService.reset();
-              rerollCount = 0;  // Reset reroll count
+              rerollCount = 0; // Reset reroll count
               _generateNewPatterns();
             });
             Navigator.of(context).pop();
@@ -390,7 +398,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         onLinesCleared: (rowsToClear, colsToClear) {
           // Check conditions for showing pardon popup
           final totalClears = rowsToClear.length + colsToClear.length;
-          if (!_pardonShownForCurrentStreak && 
+          if (!_pardonShownForCurrentStreak &&
               (totalClears > 1 || ScoreService.consecutiveClears >= 3)) {
             _pardonShownForCurrentStreak = true;
             WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -400,16 +408,16 @@ class _GameScreenState extends ConsumerState<GameScreen> {
               );
             });
           }
-          
+
           // Show clear effect
           _showClearEffect(rowsToClear, colsToClear);
-          
+
           // Save state after clearing lines
           unawaited(_saveGameState());
         },
       );
     });
-    
+
     if (ScoreService.consecutiveClears == 0) {
       _pardonShownForCurrentStreak = false;
     }
@@ -417,7 +425,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
 
   void _showClearEffect(List<int> rowsToClear, List<int> colsToClear) {
     if (!mounted) return;
-    
+
     setState(() {
       // The effect will be added to the widget tree in build()
       _activeClearEffect = BlockClearEffect(
@@ -427,7 +435,7 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         gridPosition: Offset.zero,
         gridPadding: EdgeInsets.zero,
       );
-      
+
       // Remove the effect after animation
       Future.delayed(const Duration(milliseconds: 500), () {
         if (mounted) {
@@ -437,32 +445,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
         }
       });
     });
-  }
-
-  void _tryPlacePattern(BlockPattern pattern, int row, int col) async {
-    if (gridSystem.canPlacePattern(pattern, GridPosition(row, col), gameBoard)) {
-      // Log block placement analytics
-      AnalyticsService.logEvent('block_placed', properties: {
-        'pattern_size': pattern.shape.expand((row) => row).where((cell) => cell).length,
-        'row': row,
-        'col': col,
-        'current_score': ScoreService.score,
-      });
-      
-      setState(() {
-        gridSystem.placeBlockPattern(pattern, GridPosition(row, col), gameBoard);
-        ScoreService.addBlockScore(pattern.shape.expand((row) => row).where((cell) => cell).length);
-        _checkAndClearLines();
-        
-        availablePatterns.remove(pattern);
-        if (availablePatterns.isEmpty) {
-          _generateNewPatterns();
-        }
-      });
-
-      // Start the delayed game over check
-      _delayedGameOverCheck();
-    }
   }
 
   Future<void> _delayedGameOverCheck() async {
@@ -539,41 +521,6 @@ class _GameScreenState extends ConsumerState<GameScreen> {
     });
   }
 
-  void _onDragUpdate(DragUpdateDetails details, BlockPattern pattern) {
-    final RenderBox renderBox = context.findRenderObject() as RenderBox;
-    final localPosition = renderBox.globalToLocal(details.globalPosition);
-    
-    final row = (localPosition.dy / gridSystem.cellSize).floor();
-    final col = (localPosition.dx / gridSystem.cellSize).floor();
-    
-    // Adjust the bounds check to account for the pattern height
-    if (row >= -pattern.height && row < rows && col >= 0 && col < columns) {
-      setState(() {
-        previewPosition = GridPosition(row, col);
-        previewPattern = pattern;
-      });
-      _updatePotentialClears();
-    } else {
-      setState(() {
-        previewPosition = null;
-        previewPattern = null;
-      });
-      _updatePotentialClears();
-    }
-  }
-
-  void _onDragEnd(DragEndDetails details, BlockPattern pattern) {
-    if (previewPosition != null) {
-      _tryPlacePattern(pattern, previewPosition!.row, previewPosition!.col);
-    }
-    setState(() {
-      previewPosition = null;
-      previewPattern = null;
-    });
-    _updatePotentialClears();
-  }
-
-
   void _showWhatsNew() {
     showDialog(
       context: context,
@@ -646,7 +593,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   Expanded(
                     child: Center(
                       child: Container(
-                        margin: const EdgeInsets.symmetric(horizontal: 2.0, vertical: 8.0),
+                        margin: const EdgeInsets.symmetric(
+                            horizontal: 2.0, vertical: 8.0),
                         decoration: BoxDecoration(
                           color: Theme.of(context).brightness == Brightness.dark
                               ? Colors.grey[850]
@@ -655,7 +603,10 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                           boxShadow: [
                             BoxShadow(
                               color: Colors.black.withOpacity(
-                                  Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.1),
+                                  Theme.of(context).brightness ==
+                                          Brightness.dark
+                                      ? 0.3
+                                      : 0.1),
                               blurRadius: 10,
                               spreadRadius: 2,
                             ),
@@ -664,20 +615,24 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                         child: LayoutBuilder(
                           builder: (context, constraints) {
                             // Update grid cell size based on available space
-                            final smallestDimension = math.min(constraints.maxWidth, constraints.maxHeight);
-                            final cellSize = (smallestDimension - 4) / rows;  // 32 for margin
-                            final gridSize = cellSize * rows;  // Total grid size
-                            
+                            final smallestDimension = math.min(
+                                constraints.maxWidth, constraints.maxHeight);
+                            final cellSize =
+                                (smallestDimension - 4) / rows; // 32 for margin
+                            final gridSize = cellSize * rows; // Total grid size
+
                             // Calculate centering padding
-                            final horizontalPadding = (constraints.maxWidth - gridSize) / 2;
-                            final verticalPadding = (constraints.maxHeight - gridSize) / 2;
-                            
+                            final horizontalPadding =
+                                (constraints.maxWidth - gridSize) / 2;
+                            final verticalPadding =
+                                (constraints.maxHeight - gridSize) / 2;
+
                             gridSystem = GridSystem(
                               rows: rows,
                               cols: columns,
                               cellSize: cellSize,
                             );
-                            
+
                             return Stack(
                               children: [
                                 // Patriotic grid overlay for filled cells
@@ -691,7 +646,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                     child: PatrioticGridOverlay(
                                       gameBoard: gameBoard,
                                       cellSize: cellSize,
-                                      isDarkMode: Theme.of(context).brightness == Brightness.dark,
+                                      isDarkMode:
+                                          Theme.of(context).brightness ==
+                                              Brightness.dark,
                                     ),
                                   ),
                                 ),
@@ -705,7 +662,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                     aspectRatio: 1.0,
                                     child: PotentialClearOverlay(
                                       potentialRowClears: potentialRowClears,
-                                      potentialColumnClears: potentialColumnClears,
+                                      potentialColumnClears:
+                                          potentialColumnClears,
                                       cellSize: cellSize,
                                     ),
                                   ),
@@ -720,7 +678,13 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                   ),
                                   child: SizedBox(
                                     width: gridSize,
-                                    height: gridSize + ref.watch(settings.settingsNotifierProvider).value!.blockPlacementOffset.value,
+                                    height: gridSize +
+                                        ref
+                                            .watch(settings
+                                                .settingsNotifierProvider)
+                                            .value!
+                                            .blockPlacementOffset
+                                            .value,
                                     child: Stack(
                                       children: [
                                         // The grid itself stays square
@@ -735,26 +699,40 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                                 painter: GridPainter(
                                                   grid: gridSystem,
                                                   gameBoard: gameBoard,
-                                                  gridLineColor: Theme.of(context).brightness == Brightness.dark 
-                                                    ? Colors.grey[700]! 
-                                                    : const Color(0xFFE0E0E0),
-                                                  highlightedPosition: previewPosition,
-                                                  highlightedPattern: previewPattern,
+                                                  gridLineColor: Theme.of(
+                                                                  context)
+                                                              .brightness ==
+                                                          Brightness.dark
+                                                      ? Colors.grey[700]!
+                                                      : const Color(0xFFE0E0E0),
+                                                  highlightedPosition:
+                                                      previewPosition,
+                                                  highlightedPattern:
+                                                      previewPattern,
                                                   onImageLoad: () {
-                                                    if (mounted) setState(() {});
+                                                    if (mounted)
+                                                      setState(() {});
                                                   },
-                                                  isDarkMode: Theme.of(context).brightness == Brightness.dark,
+                                                  isDarkMode: Theme.of(context)
+                                                          .brightness ==
+                                                      Brightness.dark,
                                                 ),
                                               ),
                                               GridOverlay(
                                                 grid: gridSystem,
                                                 gameBoard: gameBoard,
-                                                gridLineColor: Theme.of(context).brightness == Brightness.dark 
-                                                  ? Colors.grey[700]! 
-                                                  : const Color(0xFFE0E0E0),
-                                                highlightedPosition: previewPosition,
-                                                highlightedPattern: previewPattern,
-                                                isDarkMode: Theme.of(context).brightness == Brightness.dark,
+                                                gridLineColor: Theme.of(context)
+                                                            .brightness ==
+                                                        Brightness.dark
+                                                    ? Colors.grey[700]!
+                                                    : const Color(0xFFE0E0E0),
+                                                highlightedPosition:
+                                                    previewPosition,
+                                                highlightedPattern:
+                                                    previewPattern,
+                                                isDarkMode: Theme.of(context)
+                                                        .brightness ==
+                                                    Brightness.dark,
                                               ),
                                               if (_activeClearEffect != null)
                                                 _activeClearEffect!,
@@ -765,15 +743,22 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                         DragTarget<BlockPattern>(
                                           onWillAccept: (data) => true,
                                           onAcceptWithDetails: (details) async {
-                                            if (previewPosition != null && previewPattern != null) {
-                                              final isValid = gridSystem.canPlacePattern(
+                                            if (previewPosition != null &&
+                                                previewPattern != null) {
+                                              final isValid =
+                                                  gridSystem.canPlacePattern(
                                                 previewPattern!,
                                                 previewPosition!,
                                                 gameBoard,
                                               );
                                               if (isValid) {
-                                                await ref.read(feedbackManagerProvider).playFeedback();
-                                                _handlePatternPlacement(previewPattern!, previewPosition!);
+                                                await ref
+                                                    .read(
+                                                        feedbackManagerProvider)
+                                                    .playFeedback();
+                                                _handlePatternPlacement(
+                                                    previewPattern!,
+                                                    previewPosition!);
                                               }
                                               // Clear preview in all cases
                                               setState(() {
@@ -789,7 +774,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                             });
                                           },
                                           onMove: (details) {
-                                            final position = gridSystem.getCenteredPatternPosition(
+                                            final position = gridSystem
+                                                .getCenteredPatternPosition(
                                               details.data,
                                               details.offset,
                                               context,
@@ -800,7 +786,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                               _updatePotentialClears();
                                             });
                                           },
-                                          builder: (context, candidateData, rejectedData) {
+                                          builder: (context, candidateData,
+                                              rejectedData) {
                                             return Container(); // Empty container to receive drops
                                           },
                                         ),
@@ -817,7 +804,8 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                   ),
                   Container(
                     height: 120,
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                     decoration: BoxDecoration(
                       color: Theme.of(context).brightness == Brightness.dark
                           ? Colors.grey[850]
@@ -826,7 +814,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withOpacity(
-                              Theme.of(context).brightness == Brightness.dark ? 0.3 : 0.1),
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? 0.3
+                                  : 0.1),
                           blurRadius: 10,
                           spreadRadius: 2,
                         ),
@@ -846,32 +836,54 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                             builder: (context, constraints) {
                               final itemWidth = (constraints.maxWidth - 32) / 3;
                               return Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceEvenly,
                                 children: availablePatterns.map((pattern) {
-                                  final smallCellSize = min(itemWidth / 5, gridSystem.cellSize * 0.4);
-                                  final dragCellSize = gridSystem.cellSize * 0.75;
+                                  final smallCellSize = min(
+                                      itemWidth / 5, gridSystem.cellSize * 0.4);
+                                  final dragCellSize =
+                                      gridSystem.cellSize * 0.75;
                                   return SizedBox(
                                     width: itemWidth,
                                     child: Center(
                                       child: SizedBox(
-                                        width: pattern.width * dragCellSize * 1.2,
-                                        height: pattern.height * dragCellSize * 1.2,
+                                        width:
+                                            pattern.width * dragCellSize * 1.2,
+                                        height:
+                                            pattern.height * dragCellSize * 1.2,
                                         child: Draggable<BlockPattern>(
                                           data: pattern,
-                                          dragAnchorStrategy: (draggable, context, position) {
-                                            final centerX = pattern.width * dragCellSize / 2;
-                                            final centerY = pattern.height * dragCellSize / 2;
-                                            return Offset(centerX, centerY + ref.watch(settings.settingsNotifierProvider).value!.blockPlacementOffset.value);
+                                          dragAnchorStrategy:
+                                              (draggable, context, position) {
+                                            final centerX = pattern.width *
+                                                dragCellSize /
+                                                2;
+                                            final centerY = pattern.height *
+                                                dragCellSize /
+                                                2;
+                                            return Offset(
+                                                centerX,
+                                                centerY +
+                                                    ref
+                                                        .watch(settings
+                                                            .settingsNotifierProvider)
+                                                        .value!
+                                                        .blockPlacementOffset
+                                                        .value);
                                           },
                                           onDragStarted: () {
-                                            ref.read(feedbackManagerProvider).playFeedback();
+                                            ref
+                                                .read(feedbackManagerProvider)
+                                                .playFeedback();
                                           },
                                           feedback: Transform.scale(
                                             scale: 1.3,
                                             child: PatrioticBlockPattern(
                                               pattern: pattern,
                                               cellSize: dragCellSize,
-                                              isDarkMode: Theme.of(context).brightness == Brightness.dark,
+                                              isDarkMode: Theme.of(context)
+                                                      .brightness ==
+                                                  Brightness.dark,
                                             ),
                                           ),
                                           childWhenDragging: Opacity(
@@ -879,20 +891,29 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                             child: PatrioticBlockPattern(
                                               pattern: pattern,
                                               cellSize: dragCellSize,
-                                              isDarkMode: Theme.of(context).brightness == Brightness.dark,
+                                              isDarkMode: Theme.of(context)
+                                                      .brightness ==
+                                                  Brightness.dark,
                                             ),
                                           ),
                                           child: Container(
                                             padding: const EdgeInsets.all(6.0),
                                             decoration: BoxDecoration(
-                                              color: Theme.of(context).brightness == Brightness.dark
+                                              color: Theme.of(context)
+                                                          .brightness ==
+                                                      Brightness.dark
                                                   ? Colors.grey[900]
                                                   : Colors.white,
-                                              borderRadius: BorderRadius.circular(12),
+                                              borderRadius:
+                                                  BorderRadius.circular(12),
                                               border: Border.all(
-                                                color: Theme.of(context).brightness == Brightness.dark
-                                                    ? Colors.blue.withOpacity(0.3)
-                                                    : Colors.blue.withOpacity(0.2),
+                                                color: Theme.of(context)
+                                                            .brightness ==
+                                                        Brightness.dark
+                                                    ? Colors.blue
+                                                        .withOpacity(0.3)
+                                                    : Colors.blue
+                                                        .withOpacity(0.2),
                                                 width: 2,
                                               ),
                                             ),
@@ -900,7 +921,9 @@ class _GameScreenState extends ConsumerState<GameScreen> {
                                               child: PatrioticBlockPattern(
                                                 pattern: pattern,
                                                 cellSize: smallCellSize,
-                                                isDarkMode: Theme.of(context).brightness == Brightness.dark,
+                                                isDarkMode: Theme.of(context)
+                                                        .brightness ==
+                                                    Brightness.dark,
                                               ),
                                             ),
                                           ),
