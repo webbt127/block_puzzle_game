@@ -1,5 +1,5 @@
 import 'package:flutter/services.dart';
-import 'package:just_audio/just_audio.dart';
+import 'package:audioplayers/audioplayers.dart';
 
 enum HapticLevel {
   light,
@@ -21,6 +21,8 @@ class FeedbackManager {
   final HapticLevel hapticLevel;
   final SoundType soundType;
   final String? soundAsset;
+  bool _isAudioReady = false;
+  Source? _audioSource;
 
   FeedbackManager({
     required this.enableSound,
@@ -37,10 +39,14 @@ class FeedbackManager {
   Future<void> _initAudio() async {
     if (enableSound && soundType == SoundType.custom && soundAsset != null) {
       try {
-        await _audioPlayer.setAsset(soundAsset!);
+        _audioSource = AssetSource(soundAsset!);
+        await _audioPlayer.setSource(_audioSource!);
         await _audioPlayer.setVolume(0.5);
+        _isAudioReady = true;
+        print('Audio initialized successfully: $soundAsset');
       } catch (e) {
         print('Error initializing audio: $e');
+        _isAudioReady = false;
       }
     }
   }
@@ -66,15 +72,23 @@ class FeedbackManager {
         case SoundType.systemAlert:
           await SystemSound.play(SystemSoundType.alert);
         case SoundType.custom:
-          if (soundAsset != null) {
+          if (soundAsset != null && _audioSource != null) {
             try {
-              if (_audioPlayer.playing) {
+              if (_isAudioReady) {
                 await _audioPlayer.stop();
+                await _audioPlayer.seek(Duration.zero);
+                await _audioPlayer.resume();
+                print('Audio playback started');
+              } else {
+                print('Attempting to reinitialize audio...');
+                await _initAudio();
+                if (_isAudioReady) {
+                  await _audioPlayer.resume();
+                }
               }
-              await _audioPlayer.seek(Duration.zero);
-              await _audioPlayer.play();
             } catch (e) {
               print('Error playing audio: $e');
+              _isAudioReady = false;
             }
           }
       }
