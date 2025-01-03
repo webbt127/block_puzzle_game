@@ -36,8 +36,12 @@ class FeedbackManager {
 
   Future<void> _initAudio() async {
     if (enableSound && soundType == SoundType.custom && soundAsset != null) {
-      await _audioPlayer.setAsset(soundAsset!);
-      await _audioPlayer.setVolume(0.5);
+      try {
+        await _audioPlayer.setAsset(soundAsset!);
+        await _audioPlayer.setVolume(0.5);
+      } catch (e) {
+        print('Error initializing audio: $e');
+      }
     }
   }
 
@@ -63,8 +67,15 @@ class FeedbackManager {
           await SystemSound.play(SystemSoundType.alert);
         case SoundType.custom:
           if (soundAsset != null) {
-            await _audioPlayer.seek(Duration.zero);
-            await _audioPlayer.play();
+            try {
+              if (_audioPlayer.playing) {
+                await _audioPlayer.stop();
+              }
+              await _audioPlayer.seek(Duration.zero);
+              await _audioPlayer.play();
+            } catch (e) {
+              print('Error playing audio: $e');
+            }
           }
       }
     }
