@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:block_puzzle_game/services/logging_service.dart';
-import 'package:shared_preferences.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 part 'store_service.g.dart';
 
@@ -170,13 +170,15 @@ class StoreService {
     final prefs = await SharedPreferences.getInstance();
     final purchasedIds = prefs.getStringList(_purchaseStateKey) ?? [];
     _purchasedProductIds = Set<String>.from(purchasedIds);
-    await LoggingService.log('StoreService: Loaded purchase state: $_purchasedProductIds');
+    await LoggingService.log(
+        'StoreService: Loaded purchase state: $_purchasedProductIds');
   }
 
   Future<void> _savePurchaseState() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setStringList(_purchaseStateKey, _purchasedProductIds.toList());
-    await LoggingService.log('StoreService: Saved purchase state: $_purchasedProductIds');
+    await LoggingService.log(
+        'StoreService: Saved purchase state: $_purchasedProductIds');
   }
 
   void dispose() {

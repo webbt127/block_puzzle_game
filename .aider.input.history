@@ -325,3 +325,164 @@
 
 # 2025-01-02 22:20:17.745356
 +This is perfect! I also need to add a game over check after loading a saved game in game_screen.
+
+# 2025-01-02 23:07:08.822660
++y
+
+# 2025-01-02 23:07:19.442762
++/add lib/services/store_service.dart
+
+# 2025-01-02 23:07:38.112485
++/add lib/screens/game_screen.dart
+
+# 2025-01-02 23:08:48.251953
++Sometimes the game screen loads and appears like the user has the hideAds purchase, even though they don't. It doesn't happen every time, only occassional.
+
+# 2025-01-02 23:12:41.748261
++It seems like the restore purchases is running automatically, which I don't want it to do. flutter: [2025-01-02T23:10:55.811746] StoreService: Purchase successful
++flutter: [2025-01-02T23:10:55.811813] StoreService: Purchase successful
++flutter: [2025-01-02T23:10:55.812242] [GameScreen] Hide ads status: true
++flutter: [2025-01-02T23:10:55.812830] StoreService: Purchase completed
++flutter: [2025-01-02T23:10:55.812989] StoreService: Purchase completed
++flutter: [2025-01-02T23:10:55.813219] StoreService: Purchase completed
++flutter: [2025-01-02T23:10:55.813576] StoreService: Purchase completed
++flutter: [2025-01-02T23:10:55.813821] [GameScreen] Initializing game...
++flutter: [2025-01-02T23:10:55.813933] [GameScreen] No saved state found, starting new game
++flutter: [2025-01-02T23:10:55.813974] [GameScreen] Generating new patterns, afterAd: false
++flutter: [2025-01-02T23:10:55.814023] [GameScreen] Initialization complete
++2
++flutter: isSignedIn: true
++flutter: Top Player Data:
++flutter: Name: CopperZombie6.5
++flutter: Avatar data length: 164396
++flutter: Score: 35640
++flutter: Rank: 1
++flutter: [2025-01-02T23:11:24.126794] [GameScreen] initState
++flutter: [2025-01-02T23:11:24.127281] [GameScreen] Initializing game and ads...
++flutter: [2025-01-02T23:11:24.140419] [GameScreen] Checking hide ads status...
++flutter: [2025-01-02T23:11:24.141459] StoreService: Initializing...
++flutter: [2025-01-02T23:11:24.148564] StoreService: Store is available
++flutter: [2025-01-02T23:11:24.149329] StoreService: Loading products...
++flutter: [2025-01-02T23:11:24.443585] StoreService: Loaded 1 products
++flutter: [2025-01-02T23:11:24.444584] - hide_ads_temp: Remove Ads ($4.99)
++flutter: [2025-01-02T23:11:25.128872] StoreService: Restored purchases
++flutter: [2025-01-02T23:11:25.130216] StoreService: Processing purchase hide_ads_bb
++flutter: [2025-01-02T23:11:25.130285] StoreService: Processing purchase hide_ads_bb
++flutter: [2025-01-02T23:11:25.130318] StoreService: Processing purchase hide_ads_bb
++flutter: [2025-01-02T23:11:25.130352] StoreService: Processing purchase hide_ads_bb
++flutter: [2025-01-02T23:11:25.130380] StoreService: Processing purchase hide_ads_bb
++flutter: [2025-01-02T23:11:25.130827] HasHideAds Provider: Checking status
++flutter: [2025-01-02T23:11:25.130916] StoreService: Purchase successful
++flutter: [2025-01-02T23:11:25.131191] StoreService: Purchase successful
++flutter: [2025-01-02T23:11:25.131253] StoreService: Purchase successful
++flutter: [2025-01-02T23:11:25.131307] StoreService: Purchase successful
++flutter: [2025-01-02T23:11:25.131350] StoreService: Purchase successful
++flutter: [2025-01-02T23:11:25.131561] StoreService: Checking hide ads status
++flutter: [2025-01-02T23:11:25.131924] StoreService: Purchase completed
++flutter: [2025-01-02T23:11:25.132205] StoreService: Purchase completed
++flutter: [2025-01-02T23:11:25.132327] StoreService: Hide ads status: false
++flutter: [2025-01-02T23:11:25.132387] StoreService: Purchase completed
+
+# 2025-01-02 23:15:17.077471
++/undo
+
+# 2025-01-02 23:15:30.933722
++It seems like the restore purchases is running automatically, which I don't want it to do. flutter: [2025-01-02T23:10:55.811746] StoreService: Purchase successful
++flutter: [2025-01-02T23:10:55.811813] StoreService: Purchase successful
++flutter: [2025-01-02T23:10:55.812242] [GameScreen] Hide ads status: true
++flutter: [2025-01-02T23:10:55.812830] StoreService: Purchase completed
++flutter: [2025-01-02T23:10:55.812989] StoreService: Purchase completed
++flutter: [2025-01-02T23:10:55.813219] StoreService: Purchase completed
++flutter: [2025-01-02T23:10:55.813576] StoreService: Purchase completed
++flutter: [2025-01-02T23:10:55.813821] [GameScreen] Initializing game...
++flutter: [2025-01-02T23:10:55.813933] [GameScreen] No saved state found, starting new game
++flutter: [2025-01-02T23:10:55.813974] [GameScreen] Generating new patterns, afterAd: false
++flutter: [2025-01-02T23:10:55.814023] [GameScreen] Initialization complete
++2
++flutter: isSignedIn: true
++flutter: Top Player Data:
++flutter: Name: CopperZombie6.5
++flutter: Avatar data length: 164396
++flutter: Score: 35640
++flutter: Rank: 1
++flutter: [2025-01-02T23:11:24.126794] [GameScreen] initState
++flutter: [2025-01-02T23:11:24.127281] [GameScreen] Initializing game and ads...
++flutter: [2025-01-02T23:11:24.140419] [GameScreen] Checking hide ads status...
++flutter: [2025-01-02T23:11:24.141459] StoreService: Initializing...
++flutter: [2025-01-02T23:11:24.148564] StoreService: Store is available
++flutter: [2025-01-02T23:11:24.149329] StoreService: Loading products...
++flutter: [2025-01-02T23:11:24.443585] StoreService: Loaded 1 products
++flutter: [2025-01-02T23:11:24.444584] - hide_ads_temp: Remove Ads ($4.99)
++flutter: [2025-01-02T23:11:25.128872] StoreService: Restored purchases
++flutter: [2025-01-02T23:11:25.130216] StoreService: Processing purchase hide_ads_bb
++flutter: [2025-01-02T23:11:25.130285] StoreService: Processing purchase hide_ads_bb
++flutter: [2025-01-02T23:11:25.130318] StoreService: Processing purchase hide_ads_bb
++flutter: [2025-01-02T23:11:25.130352] StoreService: Processing purchase hide_ads_bb
++flutter: [2025-01-02T23:11:25.130380] StoreService: Processing purchase hide_ads_bb
++flutter: [2025-01-02T23:11:25.130827] HasHideAds Provider: Checking status
++flutter: [2025-01-02T23:11:25.130916] StoreService: Purchase successful
++flutter: [2025-01-02T23:11:25.131191] StoreService: Purchase successful
++flutter: [2025-01-02T23:11:25.131253] StoreService: Purchase successful
++flutter: [2025-01-02T23:11:25.131307] StoreService: Purchase successful
++flutter: [2025-01-02T23:11:25.131350] StoreService: Purchase successful
++flutter: [2025-01-02T23:11:25.131561] StoreService: Checking hide ads status
++flutter: [2025-01-02T23:11:25.131924] StoreService: Purchase completed
++flutter: [2025-01-02T23:11:25.132205] StoreService: Purchase completed
++flutter: [2025-01-02T23:11:25.132327] StoreService: Hide ads status: false
++flutter: [2025-01-02T23:11:25.132387] StoreService: Purchase completed
+
+# 2025-01-02 23:19:42.424976
++Using the restore purchase or purchasing the product doesn't seem hold when changing screens
+
+# 2025-01-02 23:20:16.717081
++y
+
+# 2025-01-02 23:21:44.845773
++/undo
+
+# 2025-01-02 23:28:24.125627
++The hideAds isn't holding state and I can't figure out why: flutter: [2025-01-02T23:26:59.672435] StoreService: Purchase successful
++flutter: [2025-01-02T23:26:59.674033] HasHideAds Provider: Result: true
++flutter: [2025-01-02T23:26:59.674769] StoreService: Purchase completed
++flutter: [2025-01-02T23:26:59.675099] StoreService: Purchase completed
++flutter: [2025-01-02T23:26:59.675405] StoreService: Purchase completed
++flutter: [2025-01-02T23:26:59.675852] StoreService: Processing purchase hide_ads_temp
++flutter: [2025-01-02T23:26:59.676206] StoreService: Processing purchase hide_ads_temp
++flutter: [2025-01-02T23:26:59.676385] StoreService: Processing purchase hide_ads_temp
++flutter: [2025-01-02T23:26:59.676733] StoreService: Purchase successful
++flutter: [2025-01-02T23:26:59.677042] StoreService: Purchase successful
++flutter: [2025-01-02T23:26:59.677136] StoreService: Purchase successful
++flutter: [2025-01-02T23:26:59.677783] StoreService: Purchase completed
++flutter: [2025-01-02T23:26:59.678820] StoreService: Purchase completed
++flutter: [2025-01-02T23:26:59.679063] StoreService: Purchase completed
++flutter: [2025-01-02T23:26:59.681506] StoreScreen: Building screen
++flutter: [2025-01-02T23:26:59.683355] StoreScreen: Building available products tab
++flutter: [2025-01-02T23:26:59.683509] - Connection state: ConnectionState.done
++flutter: [2025-01-02T23:26:59.683561] - Has error: false
++flutter: [2025-01-02T23:26:59.683619] - Error: null
++flutter: [2025-01-02T23:26:59.683662] - Has data: true
++flutter: [2025-01-02T23:26:59.683700] - Data length: 0
++2
++flutter: isSignedIn: true
++flutter: Top Player Data:
++flutter: Name: CopperZombie6.5
++flutter: Avatar data length: 164396
++flutter: Score: 35640
++flutter: Rank: 1
++flutter: [2025-01-02T23:27:13.308969] [GameScreen] initState
++flutter: [2025-01-02T23:27:13.309204] [GameScreen] Initializing game...
++flutter: [2025-01-02T23:27:13.309429] StoreService: Initializing...
++flutter: [2025-01-02T23:27:13.309551] [GameScreen] Creating rewarded ad
++flutter: [2025-01-02T23:27:13.309591] [AdService] Rewarded ad already loaded
++[log] Successfully loaded game state with score: 0 and remaining rerolls: 2
++[log] Converting saved state to 3 patterns
++flutter: [2025-01-02T23:27:13.321341] [GameScreen] Loaded saved state with score: 0 and remaining rerolls: 2
++flutter: [2025-01-02T23:27:13.332496] StoreService: Store is available
++flutter: [2025-01-02T23:27:13.337292] StoreService: Loading products...
++[log] Loaded game state string: {"score":0,"rerollCount":1,"consecutiveClears":0,"gameBoard":[[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0],[0,0,0,0,0,0,0,0]],"patterns":[[[1],[1],[1],[1]],[[1,1,1],[0,1,0]],[[1,1],[0,1],[0,1]]],"remainingRerolls":2}
++flutter: [2025-01-02T23:27:13.370905] StoreService: Loaded 1 products
++flutter: [2025-01-02T23:27:13.371890] - hide_ads_temp: Remove Ads ($4.99)
++flutter: [2025-01-02T23:27:13.372337] HasHideAds Provider: Checking status
++flutter: [2025-01-02T23:27:13.373030] StoreService: Checking hide ads status
++flutter: [2025-01-02T23:27:13.373592] HasHideAds Provider: Result: false
++flutter: [2025-01-02T23:27:19.695151] [GameScreen] Ad availability changed, rebuilding UI
