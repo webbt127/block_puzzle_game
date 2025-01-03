@@ -90,6 +90,8 @@ flutter:
     - assets/gifs/trump_ty.gif
     - assets/gifs/trump_lg.gif
     - assets/gifs/trump_ly.gif
+    - assets/sounds/win.mp3
+    - assets/sounds/fail.mp3
   #   - images/a_dot_ham.jpeg
 
   # An image asset can refer to one or more resolution-specific "variants", see
