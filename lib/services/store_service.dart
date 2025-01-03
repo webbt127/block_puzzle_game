@@ -100,6 +100,7 @@ class StoreService {
           purchaseDetails.status == PurchaseStatus.restored) {
         await LoggingService.log('StoreService: Purchase successful');
         _purchasedProductIds.add(purchaseDetails.productID);
+        await _savePurchaseState();
       }
 
       if (purchaseDetails.pendingCompletePurchase) {
