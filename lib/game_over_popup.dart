@@ -66,26 +66,26 @@ class _GameOverPopupState extends ConsumerState<GameOverPopup>
     _currentScore = widget.finalScore;
     _highScore = widget.initialHighScore;
     _isHighScore = _highScore != null && widget.finalScore > _highScore!;
-    
+
     // Play appropriate feedback sound
     if (_isHighScore) {
-      ref.read(winFeedback).trigger();
+      ref.read(winFeedbackProvider).playFeedback();
     } else {
-      ref.read(timeUpFeedback).trigger();
+      ref.read(failFeedbackProvider).playFeedback();
     }
-    
+
     // Select message based on high score status
     final random = math.Random();
-    selectedMessage = _isHighScore 
+    selectedMessage = _isHighScore
         ? highScoreMessages[random.nextInt(highScoreMessages.length)]
         : gameOverMessages[random.nextInt(gameOverMessages.length)];
-    
+
     // Preload rewarded ad if rerolls are available
     if (widget.rerollsRemaining > 0 && widget.onReroll != null) {
       foundation.debugPrint('[GameOverPopup] Creating rewarded ad');
       AdService.loadRewardedAd();
     }
-    
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1000),
       vsync: this,
@@ -151,7 +151,8 @@ class _GameOverPopupState extends ConsumerState<GameOverPopup>
                         constraints: BoxConstraints(
                           maxHeight: MediaQuery.of(context).size.height * 0.85,
                         ),
-                        padding: const EdgeInsets.symmetric(vertical: 20.0, horizontal: 24.0),
+                        padding: const EdgeInsets.symmetric(
+                            vertical: 20.0, horizontal: 24.0),
                         decoration: BoxDecoration(
                           color: Colors.white,
                           borderRadius: BorderRadius.circular(24),
@@ -188,7 +189,8 @@ class _GameOverPopupState extends ConsumerState<GameOverPopup>
                               ),
                               const SizedBox(height: 16),
                               Container(
-                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                                padding: const EdgeInsets.symmetric(
+                                    vertical: 12, horizontal: 16),
                                 decoration: BoxDecoration(
                                   color: Colors.blue[50],
                                   borderRadius: BorderRadius.circular(12),
@@ -200,7 +202,8 @@ class _GameOverPopupState extends ConsumerState<GameOverPopup>
                                       style: TextStyle(
                                         fontSize: 14,
                                         fontWeight: FontWeight.w600,
-                                        color: Colors.blue[900]!.withOpacity(0.7),
+                                        color:
+                                            Colors.blue[900]!.withOpacity(0.7),
                                         letterSpacing: 1.2,
                                       ),
                                     ),
@@ -218,7 +221,8 @@ class _GameOverPopupState extends ConsumerState<GameOverPopup>
                                       Container(
                                         width: double.infinity,
                                         height: 1,
-                                        color: Colors.blue[200]!.withOpacity(0.3),
+                                        color:
+                                            Colors.blue[200]!.withOpacity(0.3),
                                       ),
                                       const SizedBox(height: 8),
                                       Text(
@@ -226,7 +230,8 @@ class _GameOverPopupState extends ConsumerState<GameOverPopup>
                                         style: TextStyle(
                                           fontSize: 12,
                                           fontWeight: FontWeight.w600,
-                                          color: Colors.blue[900]!.withOpacity(0.7),
+                                          color: Colors.blue[900]!
+                                              .withOpacity(0.7),
                                           letterSpacing: 1.2,
                                         ),
                                       ),
@@ -236,7 +241,9 @@ class _GameOverPopupState extends ConsumerState<GameOverPopup>
                                         style: TextStyle(
                                           fontSize: 20,
                                           fontWeight: FontWeight.bold,
-                                          color: _isHighScore ? Colors.green[700] : Colors.blue[900],
+                                          color: _isHighScore
+                                              ? Colors.green[700]
+                                              : Colors.blue[900],
                                         ),
                                       ),
                                     ],
@@ -248,14 +255,17 @@ class _GameOverPopupState extends ConsumerState<GameOverPopup>
                               // 1. Rerolls are remaining
                               // 2. onReroll callback is provided
                               // 3. If ads not hidden: rewarded ad must be available
-                              if (widget.rerollsRemaining > 0 && 
+                              if (widget.rerollsRemaining > 0 &&
                                   widget.onReroll != null &&
-                                  (widget.hideAds || AdService.hasRewardedAd)) ...[
+                                  (widget.hideAds ||
+                                      AdService.hasRewardedAd)) ...[
                                 Padding(
                                   padding: const EdgeInsets.only(bottom: 12),
                                   child: ConstrainedBox(
                                     constraints: BoxConstraints(
-                                      maxWidth: MediaQuery.of(context).size.width * 0.7,
+                                      maxWidth:
+                                          MediaQuery.of(context).size.width *
+                                              0.7,
                                     ),
                                     child: SizedBox(
                                       width: double.infinity,
@@ -266,16 +276,20 @@ class _GameOverPopupState extends ConsumerState<GameOverPopup>
                                           backgroundColor: Colors.green[700],
                                           foregroundColor: Colors.white,
                                           elevation: 3,
-                                          shadowColor: Colors.green[700]!.withOpacity(0.5),
+                                          shadowColor: Colors.green[700]!
+                                              .withOpacity(0.5),
                                           shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(12),
+                                            borderRadius:
+                                                BorderRadius.circular(12),
                                           ),
                                           padding: EdgeInsets.symmetric(
-                                            horizontal: !widget.hideAds ? 8 : 12,
+                                            horizontal:
+                                                !widget.hideAds ? 8 : 12,
                                           ),
                                         ),
                                         child: Row(
-                                          mainAxisAlignment: MainAxisAlignment.center,
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.center,
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
                                             const Icon(
@@ -293,16 +307,20 @@ class _GameOverPopupState extends ConsumerState<GameOverPopup>
                                             if (!widget.hideAds) ...[
                                               const SizedBox(width: 4),
                                               Container(
-                                                padding: const EdgeInsets.symmetric(
+                                                padding:
+                                                    const EdgeInsets.symmetric(
                                                   horizontal: 3,
                                                   vertical: 1,
                                                 ),
                                                 decoration: BoxDecoration(
-                                                  color: Colors.white.withOpacity(0.2),
-                                                  borderRadius: BorderRadius.circular(4),
+                                                  color: Colors.white
+                                                      .withOpacity(0.2),
+                                                  borderRadius:
+                                                      BorderRadius.circular(4),
                                                 ),
                                                 child: const Row(
-                                                  mainAxisSize: MainAxisSize.min,
+                                                  mainAxisSize:
+                                                      MainAxisSize.min,
                                                   children: [
                                                     Icon(
                                                       Icons.play_circle_filled,
@@ -313,7 +331,8 @@ class _GameOverPopupState extends ConsumerState<GameOverPopup>
                                                       'AD',
                                                       style: TextStyle(
                                                         fontSize: 8,
-                                                        fontWeight: FontWeight.bold,
+                                                        fontWeight:
+                                                            FontWeight.bold,
                                                       ),
                                                     ),
                                                   ],
@@ -329,7 +348,8 @@ class _GameOverPopupState extends ConsumerState<GameOverPopup>
                               ],
                               ConstrainedBox(
                                 constraints: BoxConstraints(
-                                  maxWidth: MediaQuery.of(context).size.width * 0.7,
+                                  maxWidth:
+                                      MediaQuery.of(context).size.width * 0.7,
                                 ),
                                 child: SizedBox(
                                   width: double.infinity,
@@ -340,21 +360,26 @@ class _GameOverPopupState extends ConsumerState<GameOverPopup>
                                       backgroundColor: Colors.blue[900],
                                       foregroundColor: Colors.white,
                                       elevation: 3,
-                                      shadowColor: Colors.blue[900]!.withOpacity(0.5),
+                                      shadowColor:
+                                          Colors.blue[900]!.withOpacity(0.5),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
-                                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 12),
                                     ),
                                     child: Row(
-                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Container(
                                           padding: const EdgeInsets.all(4),
                                           decoration: BoxDecoration(
-                                            color: Colors.white.withOpacity(0.15),
-                                            borderRadius: BorderRadius.circular(8),
+                                            color:
+                                                Colors.white.withOpacity(0.15),
+                                            borderRadius:
+                                                BorderRadius.circular(8),
                                           ),
                                           child: const Icon(
                                             Icons.play_arrow_rounded,

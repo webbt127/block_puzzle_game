@@ -486,3 +486,161 @@
 +flutter: [2025-01-02T23:27:13.373030] StoreService: Checking hide ads status
 +flutter: [2025-01-02T23:27:13.373592] HasHideAds Provider: Result: false
 +flutter: [2025-01-02T23:27:19.695151] [GameScreen] Ad availability changed, rebuilding UI
+
+# 2025-01-03 11:01:50.796534
++/reset
+
+# 2025-01-03 11:01:55.961768
++/add lib/providers/feedback_providers.dart
+
+# 2025-01-03 11:02:04.534791
++/add lib/game_over_popup.dart
+
+# 2025-01-03 11:03:15.161099
++I need to add the feedback providers to the game over popup, where winFeedback should be used if the user beats their high score, otherwise use the failFeedback
+
+# 2025-01-03 11:15:27.342361
++I lost my .env file and need help regenerating as much of it as possible
+
+# 2025-01-03 11:15:41.796075
++y
+
+# 2025-01-03 11:16:56.526095
++n
+
+# 2025-01-03 11:17:53.166406
++I lost my .env file and need help regenerating as much of it as possible. I don't have the env.g.dart since it got deleted.
+
+# 2025-01-03 11:18:31.317510
++y
+
+# 2025-01-03 11:18:31.324747
++/run flutter pub run build_runner build
+
+# 2025-01-03 11:18:31.324864
++/run flutter pub run build_runner build
+
+# 2025-01-03 11:20:51.239130
++y
+
+# 2025-01-03 11:21:26.878120
++/add lib/env/env.dart
+
+# 2025-01-03 11:21:32.059754
++I lost my .env file and need help regenerating as much of it as possible. I don't have the env.g.dart since it got deleted.
+
+# 2025-01-03 11:21:48.364804
++y
+
+# 2025-01-03 11:21:48.371167
++/run dart run build_runner build
+
+# 2025-01-03 11:21:48.371299
++/run dart run build_runner build
+
+# 2025-01-03 11:21:53.664496
++y
+
+# 2025-01-03 11:36:43.916655
++/add lib/services/feedback_manager.dart
+
+# 2025-01-03 11:37:01.347466
++I have this happening on line 39 of feedback_manager and I can't figure out why: Exception has occurred.
++PlayerException ((-11849) Operation Stopped)
+
+# 2025-01-03 11:39:27.129739
++flutter: Error initializing audio: (-11849) Operation Stopped
++flutter: Error playing audio: MissingPluginException(No implementation found for method play on channel com.ryanheise.just_audio.methods.2d9d99af-afd4-4dce-9c65-2fb8586a0568)
+
+# 2025-01-03 11:39:59.799354
++y
+
+# 2025-01-03 11:40:19.574039
++/run flutter clean
+
+# 2025-01-03 11:40:19.574384
++/run flutter clean
+
+# 2025-01-03 11:40:24.557111
++/run flutter pub get
+
+# 2025-01-03 11:40:24.557241
++/run flutter pub get
+
+# 2025-01-03 11:40:28.845061
++/run flutter pub upgrade
+
+# 2025-01-03 11:40:28.845204
++/run flutter pub upgrade
+
+# 2025-01-03 11:40:35.015802
++y
+
+# 2025-01-03 11:46:19.479406
++/undo
+
+# 2025-01-03 11:55:17.217540
++I'm still not getting audio. is there something wrong with my FeedbackManager implementation?
+
+# 2025-01-03 11:57:19.849854
++/undo
+
+# 2025-01-03 11:57:28.156924
++y
+
+# 2025-01-03 11:57:28.164018
++/run flutter clean
+
+# 2025-01-03 11:57:28.164173
++/run flutter clean
+
+# 2025-01-03 11:57:33.382714
++/run flutter pub get
+
+# 2025-01-03 11:57:33.382835
++/run flutter pub get
+
+# 2025-01-03 11:58:05.227620
++n
+
+# 2025-01-03 11:58:07.499360
++/undo
+
+# 2025-01-03 11:58:33.361519
++/git restore lib/services/feedback_manager.dart
+
+# 2025-01-03 11:58:39.852925
++/undo
+
+# 2025-01-03 12:12:00.814439
++It appears that just_audio has some issues. Can we use another implementation in FeedbackManager?
+
+# 2025-01-03 12:12:26.954837
++y
+
+# 2025-01-03 12:12:26.958367
++/run flutter clean
+
+# 2025-01-03 12:12:26.958411
++/run flutter clean
+
+# 2025-01-03 12:12:34.267687
++/run flutter pub remove just_audio
+
+# 2025-01-03 12:12:34.267848
++/run flutter pub remove just_audio
+
+# 2025-01-03 12:12:40.090505
++/run flutter pub add audioplayers
+
+# 2025-01-03 12:12:40.090666
++/run flutter pub add audioplayers
+
+# 2025-01-03 12:12:44.333711
++/run flutter pub get
+
+# 2025-01-03 12:12:44.333885
++/run flutter pub get
+
+# 2025-01-03 12:12:52.164095
++y

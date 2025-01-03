@@ -23,40 +23,6 @@ final feedbackManagerProvider = AutoDisposeProvider<FeedbackManager>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef FeedbackManagerRef = AutoDisposeProviderRef<FeedbackManager>;
-String _$wordFoundFeedbackHash() => r'e79adef5dc9bb9fb40cebfea51b40b544c58f76c';
-
-/// See also [wordFoundFeedback].
-@ProviderFor(wordFoundFeedback)
-final wordFoundFeedbackProvider = AutoDisposeProvider<FeedbackManager>.internal(
-  wordFoundFeedback,
-  name: r'wordFoundFeedbackProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$wordFoundFeedbackHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef WordFoundFeedbackRef = AutoDisposeProviderRef<FeedbackManager>;
-String _$timeUpFeedbackHash() => r'e555573ea9811cb5f42ecca26bec9ac4a6cfe133';
-
-/// See also [timeUpFeedback].
-@ProviderFor(timeUpFeedback)
-final timeUpFeedbackProvider = AutoDisposeProvider<FeedbackManager>.internal(
-  timeUpFeedback,
-  name: r'timeUpFeedbackProvider',
-  debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
-      ? null
-      : _$timeUpFeedbackHash,
-  dependencies: null,
-  allTransitiveDependencies: null,
-);
-
-@Deprecated('Will be removed in 3.0. Use Ref instead')
-// ignore: unused_element
-typedef TimeUpFeedbackRef = AutoDisposeProviderRef<FeedbackManager>;
 String _$winFeedbackHash() => r'07e0ac8480d8064af4ae8f6bf9d81ae7311c4f2a';
 
 /// See also [winFeedback].
@@ -73,6 +39,22 @@ final winFeedbackProvider = AutoDisposeProvider<FeedbackManager>.internal(
 @Deprecated('Will be removed in 3.0. Use Ref instead')
 // ignore: unused_element
 typedef WinFeedbackRef = AutoDisposeProviderRef<FeedbackManager>;
+String _$failFeedbackHash() => r'b77b45d169cc960d3f3a76044f5dcd076fe4642a';
+
+/// See also [failFeedback].
+@ProviderFor(failFeedback)
+final failFeedbackProvider = AutoDisposeProvider<FeedbackManager>.internal(
+  failFeedback,
+  name: r'failFeedbackProvider',
+  debugGetCreateSourceHash:
+      const bool.fromEnvironment('dart.vm.product') ? null : _$failFeedbackHash,
+  dependencies: null,
+  allTransitiveDependencies: null,
+);
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+typedef FailFeedbackRef = AutoDisposeProviderRef<FeedbackManager>;
 String _$settingsFeedbackHash() => r'22a5d73abbc86f90a318cf0227f260af5bbbcd66';
 
 /// See also [settingsFeedback].

@@ -17,30 +17,6 @@ FeedbackManager feedbackManager(Ref ref) {
 }
 
 @riverpod
-FeedbackManager wordFoundFeedback(Ref ref) {
-  final settings = ref.watch(settingsNotifierProvider).value;
-  return FeedbackManager(
-    enableSound: settings?.enableSound ?? true,
-    enableHaptics: settings?.enableHaptics ?? true,
-    hapticLevel: HapticLevel.heavy,
-    soundType: SoundType.custom,
-    soundAsset: 'assets/sounds/word_found.mp3',
-  );
-}
-
-@riverpod
-FeedbackManager timeUpFeedback(Ref ref) {
-  final settings = ref.watch(settingsNotifierProvider).value;
-  return FeedbackManager(
-    enableSound: settings?.enableSound ?? true,
-    enableHaptics: settings?.enableHaptics ?? true,
-    hapticLevel: HapticLevel.light,
-    soundType: SoundType.custom,
-    soundAsset: 'assets/sounds/fail.mp3',
-  );
-}
-
-@riverpod
 FeedbackManager winFeedback(Ref ref) {
   final settings = ref.watch(settingsNotifierProvider).value;
   return FeedbackManager(
@@ -48,7 +24,19 @@ FeedbackManager winFeedback(Ref ref) {
     enableHaptics: settings?.enableHaptics ?? true,
     hapticLevel: HapticLevel.medium,
     soundType: SoundType.custom,
-    soundAsset: 'assets/sounds/win.mp3',
+    soundAsset: 'sounds/win.mp3',
+  );
+}
+
+@riverpod
+FeedbackManager failFeedback(Ref ref) {
+  final settings = ref.watch(settingsNotifierProvider).value;
+  return FeedbackManager(
+    enableSound: settings?.enableSound ?? true,
+    enableHaptics: settings?.enableHaptics ?? true,
+    hapticLevel: HapticLevel.medium,
+    soundType: SoundType.custom,
+    soundAsset: 'sounds/fail.mp3',
   );
 }
 

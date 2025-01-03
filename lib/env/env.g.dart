@@ -9,12 +9,7 @@ part of 'env.dart';
 // coverage:ignore-file
 // ignore_for_file: type=lint
 final class _Env {
-  static const String revenueCatApiKeyAndroid =
-      'goog_QCLLnJtzzVksnqXTtPpOICOxObA';
-
-  static const String revenueCatApiKeyIos = 'appl_SGXlrkJVNgnHEdKqWdHUYpJlJdV';
-
-  static const String amplitudeApiKey = 'af33d0852ffea94f2961d793e1f87707';
+  static const String amplitudeApiKey = 'af33d0852ffea94f2961d793e1f87';
 
   static const String testBannerAdUnitIdAndroid =
       'ca-app-pub-3940256099942544/6300978111';
@@ -32,7 +27,7 @@ final class _Env {
       'ca-app-pub-3940256099942544/5224354917';
 
   static const String testRewardedAdUnitIdIos =
-      'ca-app-pub-3940256099942544/5224354917';
+      'ca-app-pub-3940256099942544/1712485313';
 
   static const String bannerAdUnitIdAndroid =
       'ca-app-pub-2505538993380432/5207541366';
